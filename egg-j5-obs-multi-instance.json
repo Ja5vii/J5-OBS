@@ -1,28 +1,21 @@
 {
   "meta": {
-    "version": "PTCDV1",
-    "author": "J5 Studio"
+    "version": "PTCDV1"
   },
   "name": "J5 OBS Multi-Instance",
   "description": "Multi-instance OBS Studio host for Pterodactyl. Manages N independent OBS instances with isolated configs, displays, WebSocket, and RTMP within a single Game Server.",
   "author": "J5 Studio",
-  "image": "ghcr.io/j5studio/obs-multi-instance:latest",
+  "image": "ghcr.io/ja5vii/obs-multi-instance:latest",
   "startup": "/home/container/startup.sh",
   "script": {
-    "privileged": false,
+    "privilegeileged": false,
     "container": {
       "bash": "bash {{FILE}}",
-      "sh": "sh {{FILE}}",
-      "python": "python3 {{FILE}}"
-    },
-    "entrypoint": "/home/container/startup.sh"
+      "sh": "sh {{FILE}}"
+    }
   },
   "config_files": [],
   "stop": "SIGTERM",
-  "force_outgoing_ip": false,
-  "features": ["java_version_select", "ghcr_auth", "python_version_select"],
-  "supported": ["java_version_select", "ghcr_auth", "python_version_select"],
-  "mount_path": "/home/container",
   "variables": [
     {
       "name": "J5_MANAGER_PORT",
