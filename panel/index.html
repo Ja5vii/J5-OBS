@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<title>J5 OBS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--sf:#12121a;--cd:#1a1a2e;--bd:#2a2a3e;--pr:#6c5ce7;--ok:#00b894;--wn:#fdcb6e;--er:#e17055;--tx:#e0e0e0;--dm:#888;--r:8px}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.hidden{display:none!important}
+.app{display:none;flex-direction:column;min-height:100vh}
+.app.on{display:flex}
+.hdr{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.hdr h1{font-size:16px;font-weight:700;color:var(--pr)}
+.hdr button{background:none;border:none;color:var(--dm);cursor:pointer;font-size:16px;padding:4px 6px}
+main{flex:1;padding:12px;max-width:700px;width:100%;margin:0 auto}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ct{font-size:15px;font-weight:600}
+.bg{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
+.bg.on{background:#00b89422;color:var(--ok)}.bg.st{background:#fff1;color:var(--dm)}.bg.sp{background:#fdcb6e22;color:var(--wn)}.bg.er{background:#e1705522;color:var(--er)}.bg.cr{background:#e1705533;color:var(--er)}
+.dt{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:6px}
+.dt.on{background:var(--ok)}.dt.st{background:var(--dm)}.dt.sp{background:var(--wn)}.dt.er,.dt.cr{background:var(--er)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.si{background:var(--sf);border-radius:5px;padding:6px 8px}
+.sl{font-size:9px;color:var(--dm);text-transform:uppercase;letter-spacing:.3px}
+.sv{font-size:14px;font-weight:700;margin-top:1px}
+.sv.w{color:var(--wn)}.sv.d{color:var(--er)}
+.b{padding:5px 12px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;transition:.1s}
+.b:active{transform:scale(.96)}
+.bp{background:var(--pr);color:#fff}.bp:hover{opacity:.9}
+.bs{background:var(--ok);color:#fff}.bd{background:var(--er);color:#fff}.bd:hover{opacity:.9}
+.bt{background:transparent;color:var(--dm);border:1px solid var(--bd)}.bt:hover{background:var(--sf)}
+.act{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.empty{text-align:center;padding:32px;color:var(--dm);font-size:14px}
+.lg{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:14px}
+.lb{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:28px;width:100%;max-width:340px;text-align:center}
+.lb h1{font-size:22px;margin-bottom:2px}
+.lb .sub{color:var(--dm);font-size:12px;margin-bottom:20px}
+.lb input{width:100%;padding:10px;border:1px solid var(--bd);border-radius:var(--r);background:var(--sf);color:var(--tx);font-size:14px;margin-bottom:10px;outline:none}
+.lb input:focus{border-color:var(--pr)}
+.lb .b{width:100%;padding:10px;font-size:14px}
+.lb .err{color:var(--er);font-size:12px;margin-top:6px;display:none}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:14px}
+.mo.on{display:flex}
+.md{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:20px;width:100%;max-width:380px}
+.md h2{font-size:16px;margin-bottom:14px}
+.md input,.md select{width:100%;padding:9px;border:1px solid var(--bd);border-radius:5px;background:var(--sf);color:var(--tx);font-size:13px;margin-bottom:8px;outline:none}
+.md input:focus{border-color:var(--pr)}
+.md .act{margin-top:14px;justify-content:flex-end}
+.fab{position:fixed;bottom:16px;right:16px;width:50px;height:50px;border-radius:50%;background:var(--pr);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(108,92,231,.4);z-index:50}
+.fab:hover{opacity:.9}
+@media(max-width:500px){.sg{grid-template-columns:repeat(2,1fr)}.act{flex-direction:column}.act .b{width:100%}}
+</style>
+</head>
+<body>
+<div class="lg" id="lg"><div class="lb"><h1>J5 OBS</h1><p class="sub">Multi-Instance Panel</p><input type="password" id="tk" placeholder="API Token" autofocus><div class="err" id="le">Token invalido</div><button class="b bp" onclick="login()">Conectar</button></div></div>
+<div class="app" id="app"><header class="hdr"><h1>J5 OBS</h1><div><span id="st" style="font-size:11px;color:var(--dm)"></span> <button onclick="load()" title="Refresh">&#x21bb;</button> <button onclick="logout()" title="Logout">&#x2192;</button></div></header><main id="mn"></main><button class="fab" id="fb" onclick="openNew()">+</button></div>
+<div class="mo" id="nm"><div class="md"><h2>Nueva Instancia</h2><input type="text" id="nn" placeholder="Nombre"><select id="nt"><option value="">Por defecto</option></select><div class="act"><button class="b bt" onclick="closeNew()">Cancelar</button><button class="b bp" onclick="create()">Crear</button></div></div></div>
+<div class="mo" id="cm"><div class="md"><h2 id="ctt">Configurar</h2><input type="text" id="cr" placeholder="RTMP URL"><input type="password" id="ck" placeholder="Stream Key"><div class="act"><button class="b bt" onclick="closeCfg()">Cancelar</button><button class="b bp" onclick="saveCfg()">Guardar</button></div></div></div>
+<script>
+let T='',I=[],S={},R=null,X='';
+const H=()=>({'Content-Type':'application/json','Authorization':'Bearer '+T});
+async function A(m,p,b){const o={method:m,headers:H()};if(b)o.body=JSON.stringify(b);const r=await fetch(p,o),d=await r.json();if(!r.ok)throw new Error(d.error||'Error');return d}
+function login(){T=document.getElementById('tk').value.trim();if(!T)return;document.getElementById('le').style.display='none';A('GET','/api/status').then(()=>{document.getElementById('lg').classList.add('hidden');document.getElementById('app').classList.add('on');document.getElementById('fb').style.display='flex';localStorage.setItem('j5',T);loadTpl();load();R=setInterval(load,5e3)}).catch(()=>{document.getElementById('le').style.display='block';T=''})}
+function logout(){T='';localStorage.removeItem('j5');document.getElementById('app').classList.remove('on');document.getElementById('lg').classList.remove('hidden');document.getElementById('fb').style.display='none';if(R)clearInterval(R)}
+async function loadTpl(){try{const d=await A('GET','/api/templates');const s=document.getElementById('nt');s.innerHTML='<option value="">Por defecto</option>';(d.templates||[]).forEach(t=>{s.innerHTML+='<option value="'+t.name+'">'+t.name+'</option>'})}catch(e){}}
+async function load(){try{const[i,s]=await Promise.all([A('GET','/api/instances'),A('GET','/api/stats')]);I=i.instances||[];S={};(s.instances||[]).forEach(x=>{S[x.instance_id]=x});const a=I.filter(x=>x.status==='ONLINE'||x.status==='STREAMING').length;document.getElementById('st').textContent=a+'/'+I.length+' activas';render()}catch(e){}}
+function render(){const m=document.getElementById('mn');if(!I.length){m.innerHTML='<div class="empty">Sin instancias. Toca + para crear una.</div>';return}m.innerHTML=''}
+function renderOne(i){const s=S[i.instance_id]||{};const st=i.status||'STANDBY';const cpu=s.cpu_percent||0;const ram=s.ram_mb||0;const a=st==='ONLINE'||st==='STREAMING';return`<div class="cd"><div class="ch"><div style="display:flex;align-items:center"><span class="dt ${st.toLowerCase()}"></span><span class="ct">${i.name}</span></div><span class="bg ${st.toLowerCase()}">${st}</span></div><div class="sg"><div class="si"><div class="sl">CPU</div><div class="sv${cpu>80?' d':cpu>60?' w':''}">${a?cpu.toFixed(1)+'%':'-'}</div></div><div class="si"><div class="sl">RAM</div><div class="sv${ram>2e3?' d':ram>15e2?' w':''}">${a?ram.toFixed(0)+'MB':'-'}</div></div><div class="si"><div class="sl">WS</div><div class="sv">${i.websocket_port||'-'}</div></div><div class="si"><div class="sl">Display</div><div class="sv">${i.display?':'+i.display:'-'}</div></div></div><div class="act">${a?'<button class="b bd" onclick="stopI(\''+i.instance_id+'\')">Stop</button><button class="b bt" onclick="restartI(\''+i.instance_id+'\')">Restart</button>':'<button class="b bs" onclick="startI(\''+i.instance_id+'\')">Start</button>'}<button class="b bt" onclick="openCfg(\''+i.instance_id+'\')">Config</button><button class="b bt" onclick="delI(\''+i.instance_id+'\')">Delete</button></div></div>`}
+function openNew(){document.getElementById('nm').classList.add('on');document.getElementById('nn').focus()}
+function closeNew(){document.getElementById('nm').classList.remove('on');document.getElementById('nn').value=''}
+async function create(){const n=document.getElementById('nn').value.trim(),t=document.getElementById('nt').value;if(!n)return alert('Nombre requerido');try{await A('POST','/api/instances',{name:n,template:t||undefined});closeNew();load()}catch(e){alert(e.message)}}
+async function startI(id){try{await A('POST','/api/instances/'+id+'/start');load()}catch(e){alert(e.message)}}
+async function stopI(id){try{await A('POST','/api/instances/'+id+'/stop');load()}catch(e){alert(e.message)}}
+async function restartI(id){try{await A('POST','/api/instances/'+id+'/restart');load()}catch(e){alert(e.message)}}
+async function delI(id){if(!confirm('Eliminar '+id+'?'))return;try{await A('DELETE','/api/instances/'+id);load()}catch(e){alert(e.message)}}
+function openCfg(id){X=id;const i=I.find(x=>x.instance_id===id);document.getElementById('ctt').textContent='Configurar '+id;document.getElementById('cr').value=i.rtmp_url||'';document.getElementById('ck').value=i.rtmp_key||'';document.getElementById('cm').classList.add('on')}
+function closeCfg(){document.getElementById('cm').classList.remove('on')}
+async function saveCfg(){const d={};const u=document.getElementById('cr').value.trim(),k=document.getElementById('ck').value.trim();if(u)d.rtmp_url=u;if(k)d.rtmp_key=k;try{await A('PATCH','/api/instances/'+X,d);closeCfg();load()}catch(e){alert(e.message)}}
+document.getElementById('tk').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+window.addEventListener('load',()=>{const s=localStorage.getItem('j5');if(s){T=s;document.getElementById('tk').value=s;login()}});
+</script>
+</body>
+</html>

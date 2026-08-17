@@ -1,0 +1,27 @@
+{
+  "name": "J5 Low CPU",
+  "description": "Low CPU usage 720p 30fps stream for constrained environments",
+  "video": {
+    "base_width": 1280,
+    "base_height": 720,
+    "output_width": 1280,
+    "output_height": 720,
+    "fps": 30
+  },
+  "encoder": {
+    "id": "obs_x264",
+    "rate_control": "CBR",
+    "bitrate": 2500,
+    "keyframe_interval": 2,
+    "preset": "veryfast"
+  },
+  "audio": {
+    "sample_rate": 44100,
+    "channels": "stereo",
+    "desktop_volume": 1.0,
+    "mic_volume": 1.0
+  },
+  "scenes": [
+    {"name": "Main", "sources": []}
+  ]
+}

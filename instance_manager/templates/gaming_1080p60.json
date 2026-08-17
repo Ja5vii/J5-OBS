@@ -1,0 +1,29 @@
+{
+  "name": "J5 Gaming 1080p60",
+  "description": "High quality 1080p 60fps gaming stream",
+  "video": {
+    "base_width": 1920,
+    "base_height": 1080,
+    "output_width": 1920,
+    "output_height": 1080,
+    "fps": 60
+  },
+  "encoder": {
+    "id": "obs_x264",
+    "rate_control": "CBR",
+    "bitrate": 6000,
+    "keyframe_interval": 2
+  },
+  "audio": {
+    "sample_rate": 48000,
+    "channels": "stereo",
+    "desktop_volume": 1.0,
+    "mic_volume": 1.0
+  },
+  "scenes": [
+    {"name": "Starting", "sources": []},
+    {"name": "Gameplay", "sources": []},
+    {"name": "BRB", "sources": []},
+    {"name": "Ending", "sources": []}
+  ]
+}
