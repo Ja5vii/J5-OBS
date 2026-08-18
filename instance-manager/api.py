@@ -279,7 +279,7 @@ def create_api_app(manager):
             await manager.db.update_instance(request.match_info["id"], **updates)
             await manager.db.log_audit_event(request["user"]["id"], "UPDATE_CONNECTION", request.match_info["id"], updates)
 
-        return web.json_response(await manager.db.get_instance(request.match_info["id"]))
+        return web.json_response(dumps=custom_dumps, data=await manager.db.get_instance(request.match_info["id"]))
 
     @auth
     async def manager_status(request):

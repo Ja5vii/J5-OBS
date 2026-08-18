@@ -363,7 +363,7 @@ class Database:
                 # Insert the new active one
                 import json
                 await conn.execute(
-                    "INSERT INTO branding_versions (id, version_tag, config_json, signature, is_active, published_at) VALUES (, , , , true, )",
+                    "INSERT INTO branding_versions (id, version_tag, config_json, signature, is_active, published_at) VALUES ($1, $2, $3, $4, true, $5)",
                     version_id, version_tag, json.dumps(config_json), signature, now
                 )
 
@@ -376,7 +376,7 @@ class Database:
         now = datetime.now(timezone.utc)
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO branding_assets (id, filename, url, checksum, uploaded_at) VALUES (, , , , )",
+                "INSERT INTO branding_assets (id, filename, url, checksum, uploaded_at) VALUES ($1, $2, $3, $4, $5)",
                 asset_id, filename, url, checksum, now
             )
             
