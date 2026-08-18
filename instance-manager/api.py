@@ -205,7 +205,7 @@ def create_api_app(manager):
         if not await _check_access(request, request.match_info["id"]):
             return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         try:
-            return web.json_response(await manager.restart_instance(request.match_info["id"]))
+            return web.json_response(dumps=custom_dumps, data=await manager.restart_instance(request.match_info["id"]))
         except ValueError as e:
             return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
 
@@ -240,7 +240,7 @@ def create_api_app(manager):
         updates = {k: v for k, v in data.items() if k in allowed}
         if updates:
             await manager.db.update_instance(request.match_info["id"], **updates)
-        return web.json_response(await manager.db.get_instance(request.match_info["id"]))
+        return web.json_response(dumps=custom_dumps, data=await manager.db.get_instance(request.match_info["id"]))
 
 
     @auth
