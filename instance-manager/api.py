@@ -4,6 +4,10 @@ import hmac
 import json
 from functools import wraps
 from aiohttp import web
+import json
+import functools
+custom_dumps = functools.partial(json.dumps, default=str)
+
 
 
 class RateLimiter:
@@ -48,7 +52,7 @@ def require_auth(manager):
                 request["user"] = db_user
                 return await handler(request)
 
-            return web.json_response({"error": "Unauthorized"}, status=401)
+            return web.json_response(dumps=custom_dumps, data={"error": "Unauthorized"}, status=401)
         return wrapper
     return decorator
 
@@ -57,7 +61,7 @@ def require_admin(handler):
     @wraps(handler)
     async def wrapper(request):
         if request["user"]["role"] != "admin":
-            return web.json_response({"error": "Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Forbidden"}, status=403)
         return await handler(request)
     return wrapper
 
@@ -70,7 +74,7 @@ def create_api_app(manager):
     async def rate_limit(request, handler):
         key = f"{request.remote or 'x'}:{request.path}"
         if not limiter.check(key):
-            return web.json_response({"error": "Rate limit exceeded"}, status=429)
+            return web.json_response(dumps=custom_dumps, data={"error": "Rate limit exceeded"}, status=429)
         return await handler(request)
 
     app.middlewares.append(rate_limit)
@@ -82,32 +86,32 @@ def create_api_app(manager):
         username = data.get("username", "")
         password = data.get("password", "")
         if not username or not password:
-            return web.json_response({"error": "Username and password required"}, status=400)
+            return web.json_response(dumps=custom_dumps, data={"error": "Username and password required"}, status=400)
         
         user = await manager.db.get_user_by_username(username)
         if not user:
-            return web.json_response({"error": "Invalid credentials"}, status=401)
+            return web.json_response(dumps=custom_dumps, data={"error": "Invalid credentials"}, status=401)
             
         pw_hash = hashlib.sha256(password.encode()).hexdigest()
         if not hmac.compare_digest(user["password_hash"], pw_hash):
-            return web.json_response({"error": "Invalid credentials"}, status=401)
+            return web.json_response(dumps=custom_dumps, data={"error": "Invalid credentials"}, status=401)
             
         import secrets
         token = secrets.token_hex(32)
         await manager.db.create_session(token, user["id"])
         
         # We can also set a secure cookie if they requested it, but we'll stick to returning it for now.
-        return web.json_response({"token": token, "user": {"id": user["id"], "username": user["username"], "role": user["role"]}})
+        return web.json_response(dumps=custom_dumps, data={"token": token, "user": {"id": user["id"], "username": user["username"], "role": user["role"]}})
 
     @auth
     async def check_auth_status(request):
-        return web.json_response({"user": {"id": request["user"]["id"], "role": request["user"]["role"]}})
+        return web.json_response(dumps=custom_dumps, data={"user": {"id": request["user"]["id"], "role": request["user"]["role"]}})
 
     @auth
     @require_admin
     async def list_users(request):
         users = await manager.db.get_all_users()
-        return web.json_response({"users": users})
+        return web.json_response(dumps=custom_dumps, data={"users": users})
 
     @auth
     @require_admin
@@ -120,15 +124,15 @@ def create_api_app(manager):
             user = await manager.db.create_user(uid, data["username"], pw_hash, data.get("role", "user"))
             user.pop("password_hash", None)
             user.pop("token", None)
-            return web.json_response(user)
+            return web.json_response(dumps=custom_dumps, data=user)
         except Exception as e:
-            return web.json_response({"error": str(e)}, status=400)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=400)
 
     @auth
     @require_admin
     async def delete_user(request):
         await manager.db.delete_user(request.match_info["id"])
-        return web.json_response({"ok": True})
+        return web.json_response(dumps=custom_dumps, data={"ok": True})
 
     @auth
     async def list_instances(request):
@@ -136,7 +140,7 @@ def create_api_app(manager):
             instances = await manager.db.get_instances_by_owner(request["user"]["id"])
         else:
             instances = await manager.db.get_all_instances()
-        return web.json_response({"instances": instances})
+        return web.json_response(dumps=custom_dumps, data={"instances": instances})
 
     @auth
     @require_admin
@@ -144,12 +148,12 @@ def create_api_app(manager):
         data = await request.json()
         name = data.get("name", "").strip()
         if not name:
-            return web.json_response({"error": "Name required"}, status=400)
+            return web.json_response(dumps=custom_dumps, data={"error": "Name required"}, status=400)
         try:
             inst = await manager.create_instance(name, template=data.get("template"), owner_id=data.get("owner_id"))
-            return web.json_response(inst, status=201)
+            return web.json_response(dumps=custom_dumps, data=inst, status=201)
         except RuntimeError as e:
-            return web.json_response({"error": str(e)}, status=400)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=400)
 
     async def _check_access(request, instance_id):
         inst = await manager.db.get_instance(instance_id)
@@ -161,56 +165,56 @@ def create_api_app(manager):
     @auth
     async def get_instance(request):
         inst = await _check_access(request, request.match_info["id"])
-        return web.json_response(inst) if inst else web.json_response({"error": "Not found"}, status=404)
+        return web.json_response(dumps=custom_dumps, data=inst) if inst else web.json_response(dumps=custom_dumps, data={"error": "Not found"}, status=404)
 
     @auth
     @require_admin
     async def delete_instance(request):
         try:
             await manager.delete_instance(request.match_info["id"])
-            return web.json_response({"ok": True})
+            return web.json_response(dumps=custom_dumps, data={"ok": True})
         except ValueError as e:
-            return web.json_response({"error": str(e)}, status=404)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
 
     @auth
     async def start_instance(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         try:
             res = await manager.start_instance(request.match_info["id"])
             await manager.db.log_audit_event(request["user"]["id"], "START_INSTANCE", request.match_info["id"])
-            return web.json_response(res)
+            return web.json_response(dumps=custom_dumps, data=res)
         except ValueError as e:
-            return web.json_response({"error": str(e)}, status=404)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
         except Exception as e:
-            return web.json_response({"error": str(e)}, status=500)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
 
     @auth
     async def stop_instance(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         try:
             res = await manager.stop_instance(request.match_info["id"])
             await manager.db.log_audit_event(request["user"]["id"], "STOP_INSTANCE", request.match_info["id"])
-            return web.json_response(res)
+            return web.json_response(dumps=custom_dumps, data=res)
         except ValueError as e:
-            return web.json_response({"error": str(e)}, status=404)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
 
     @auth
     async def restart_instance(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         try:
             return web.json_response(await manager.restart_instance(request.match_info["id"]))
         except ValueError as e:
-            return web.json_response({"error": str(e)}, status=404)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
 
     @auth
     async def get_stats(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         s = await manager.health_manager.get_stats(request.match_info["id"])
-        return web.json_response(s) if s else web.json_response({"error": "Not found"}, status=404)
+        return web.json_response(dumps=custom_dumps, data=s) if s else web.json_response(dumps=custom_dumps, data={"error": "Not found"}, status=404)
 
     @auth
     async def get_all_stats(request):
@@ -223,12 +227,12 @@ def create_api_app(manager):
             s = await manager.health_manager.get_stats(inst["instance_id"])
             if s:
                 stats.append(s)
-        return web.json_response({"instances": stats})
+        return web.json_response(dumps=custom_dumps, data={"instances": stats})
 
     @auth
     async def update_config(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         data = await request.json()
         allowed = {"name", "rtmp_url", "rtmp_key", "profile", "scene_collection"}
         if request["user"]["role"] == "admin":
@@ -243,12 +247,12 @@ def create_api_app(manager):
     @require_admin
     async def get_audit_logs(request):
         logs = await manager.db.get_audit_logs()
-        return web.json_response({"audit_logs": logs})
+        return web.json_response(dumps=custom_dumps, data={"audit_logs": logs})
 
     @auth
     async def update_connection(request):
         if not await _check_access(request, request.match_info["id"]):
-            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+            return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         data = await request.json()
         import secrets
         
@@ -281,7 +285,7 @@ def create_api_app(manager):
     async def manager_status(request):
         instances = await manager.db.get_all_instances()
         active = sum(1 for i in instances if i["status"] in ("ONLINE", "STREAMING"))
-        return web.json_response({
+        return web.json_response(dumps=custom_dumps, data={
             "manager": "running",
             "total": len(instances),
             "active": active,
@@ -291,7 +295,7 @@ def create_api_app(manager):
 
     @auth
     async def list_templates(request):
-        return web.json_response({"templates": list(manager._load_templates().values())})
+        return web.json_response(dumps=custom_dumps, data={"templates": list(manager._load_templates().values())})
         
     @auth
     async def update_me(request):
@@ -304,8 +308,8 @@ def create_api_app(manager):
             try:
                 await manager.db.update_user(request["user"]["id"], **updates)
             except Exception as e:
-                return web.json_response({"error": str(e)}, status=400)
-        return web.json_response({"ok": True})
+                return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=400)
+        return web.json_response(dumps=custom_dumps, data={"ok": True})
 
 
     # --- Global Branding ---
@@ -313,15 +317,15 @@ def create_api_app(manager):
         try:
             active = await manager.db.get_active_branding()
             if not active:
-                return web.json_response({"error": "No active branding"}, status=404)
+                return web.json_response(dumps=custom_dumps, data={"error": "No active branding"}, status=404)
             import json
             if isinstance(active["config_json"], str):
                 active["config_json"] = json.loads(active["config_json"])
             # Format datetime
             active["published_at"] = active["published_at"].isoformat()
-            return web.json_response(active)
+            return web.json_response(dumps=custom_dumps, data=active)
         except Exception as e:
-            return web.json_response({"error": str(e)}, status=500)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
 
     @auth
     @require_admin
@@ -333,14 +337,14 @@ def create_api_app(manager):
         signature = data.get("signature", "")
         
         if not all([version_id, version_tag, config_json]):
-            return web.json_response({"error": "Missing required fields"}, status=400)
+            return web.json_response(dumps=custom_dumps, data={"error": "Missing required fields"}, status=400)
             
         try:
             await manager.db.publish_branding(version_id, version_tag, config_json, signature)
             await manager.db.log_audit_event(request["user"]["id"], "BRANDING_PUBLISHED", version_tag)
-            return web.json_response({"ok": True})
+            return web.json_response(dumps=custom_dumps, data={"ok": True})
         except Exception as e:
-            return web.json_response({"error": str(e)}, status=500)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
 
     @auth
     @require_admin
@@ -349,9 +353,9 @@ def create_api_app(manager):
             versions = await manager.db.get_all_branding_versions()
             for v in versions:
                 v["published_at"] = v["published_at"].isoformat()
-            return web.json_response({"versions": versions})
+            return web.json_response(dumps=custom_dumps, data={"versions": versions})
         except Exception as e:
-            return web.json_response({"error": str(e)}, status=500)
+            return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
     app.router.add_post("/api/auth/login", login)
     app.router.add_get("/api/status", manager_status)
     app.router.add_get("/api/users", list_users)
