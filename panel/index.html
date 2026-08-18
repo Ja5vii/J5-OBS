@@ -576,12 +576,18 @@
                 };
                 const platformRtmpUrl = (p) => PLATFORM_URLS[p] || '';
                 const onPlatformChange = () => {
-                    if(wizardForm.value.platform !== 'Custom') {
-                        wizardForm.value.rtmp_url = PLATFORM_URLS[wizardForm.value.platform] || '';
-                    }
+                    const p = wizardForm.value.platform;
+                    wizardForm.value.rtmp_url = PLATFORM_URLS[p] || '';
                 };
 
-                const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
+                const showWizard = (inst) => {
+                    activeInstance.value = inst;
+                    wizardStep.value = 1;
+                    const plat = inst.platform || 'Twitch';
+                    const autoUrl = PLATFORM_URLS[plat] || inst.rtmp_url || '';
+                    wizardForm.value = { platform: plat, rtmp_url: autoUrl, rtmp_key: inst.rtmp_key || '' };
+                    showWizardModal.value = true;
+                };
                 const saveWizard = async () => {
                     try {
                         const res = await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSON.stringify(wizardForm.value) });
