@@ -23,7 +23,7 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!/bin/bash\napt-get update -y && apt-get install -y git\ncd /mnt/server\nif [ ! -d .git ]; then\n    git clone ${GIT_ADDRESS} .\nelse\n    git pull\nfi\nchmod +x install.sh\n./install.sh",
+            "script": "#!/bin/bash\napt-get update -y && apt-get install -y git\ncd /mnt/server\nif [ ! -d .git ]; then\n    git init\n    git remote add origin ${GIT_ADDRESS}\n    git fetch origin\n    git reset --hard origin/main\nelse\n    git fetch origin\n    git reset --hard origin/main\nfi\nchmod +x install.sh\n./install.sh",
             "container": "ghcr.io/pterodactyl/installers:debian",
             "entrypoint": "bash"
         }
