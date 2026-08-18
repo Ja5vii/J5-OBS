@@ -6,7 +6,112 @@ import asyncpg
 from datetime import datetime, timezone
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS roles (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    permissions JSONB DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(255) PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id VARCHAR(50) NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS platforms (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    rtmp_url VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS instances (
+    instance_id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'STANDBY',
+    pid INTEGER,
+    display INTEGER,
+    websocket_port INTEGER,
+    ws_password VARCHAR(255),
+    profile VARCHAR(255),
+    scene_collection VARCHAR(255),
+    restart_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS instance_owners (
+    user_id VARCHAR(255) NOT NULL,
+    instance_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id, instance_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (instance_id) REFERENCES instances(instance_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS connections (
+    connection_id VARCHAR(255) PRIMARY KEY,
+    instance_id VARCHAR(255) NOT NULL UNIQUE,
+    ingest_url VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'DISCONNECTED',
+    FOREIGN KEY (instance_id) REFERENCES instances(instance_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS credentials (
+    id SERIAL PRIMARY KEY,
+    instance_id VARCHAR(255) NOT NULL,
+    platform_id VARCHAR(255),
+    encrypted_stream_key TEXT NOT NULL,
+    custom_rtmp_url VARCHAR(255),
+    FOREIGN KEY (instance_id) REFERENCES instances(instance_id) ON DELETE CASCADE,
+    FOREIGN KEY (platform_id) REFERENCES platforms(id)
+);
+
+CREATE TABLE IF NOT EXISTS streams (
+    id SERIAL PRIMARY KEY,
+    instance_id VARCHAR(255) NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(50) NOT NULL,
+    FOREIGN KEY (instance_id) REFERENCES instances(instance_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    actor_id VARCHAR(255),
+    action VARCHAR(255) NOT NULL,
+    target VARCHAR(255),
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS branding_versions (
+    id VARCHAR(255) PRIMARY KEY,
+    version_tag VARCHAR(50) NOT NULL,
+    config_json JSONB NOT NULL,
+    signature VARCHAR(255),
+    is_active BOOLEAN DEFAULT false,
+    published_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS branding_assets (
+    id VARCHAR(255) PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    url VARCHAR(500),
+    checksum VARCHAR(255),
+    uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
 """
+
 
 class Database:
     def __init__(self, base_dir):
