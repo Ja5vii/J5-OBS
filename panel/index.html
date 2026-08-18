@@ -566,6 +566,19 @@
                     } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
                 };
 
+                
+                const PLATFORM_URLS = {
+                    Twitch: 'rtmp://live.twitch.tv/app/',
+                    YouTube: 'rtmp://a.rtmp.youtube.com/live2/',
+                    Kick: 'rtmp://fa723fc1b171.global-contribute.live-video.net/app/'
+                };
+                const platformRtmpUrl = (p) => PLATFORM_URLS[p] || '';
+                const onPlatformChange = () => {
+                    if(wizardForm.value.platform !== 'Custom') {
+                        wizardForm.value.rtmp_url = PLATFORM_URLS[wizardForm.value.platform] || '';
+                    }
+                };
+
                 const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
                 const saveWizard = async () => {
                     try {
@@ -712,7 +725,7 @@
                     authenticated, token, loading, error, user, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
                     showCreateModal, form, showUserModal, userForm,
-                    showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window,
+                    showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window, onPlatformChange, platformRtmpUrl,
                     brandingConfig, logoPreview, logoFile, isPublishing, logoInput,
                     handleLogoSelect, handleLogoDrop,
                     createInstance, deleteInstance, createUser, deleteUser, publishBranding,
