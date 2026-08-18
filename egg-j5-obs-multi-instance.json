@@ -4,13 +4,14 @@
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2023-01-01T00:00:00+00:00",
+    "exported_at": "2024-01-01T00:00:00+00:00",
     "name": "J5 OBS Multi-Instance",
-    "author": "J5 Studio",
+    "author": "j5@ja5vii.com",
     "description": "Multi-instance OBS Studio host for Pterodactyl. Manages N independent OBS instances with isolated configs, displays, WebSocket, and RTMP within a single Game Server.",
     "features": null,
     "docker_images": {
-        "Ubuntu 22.04 (Base)": "ghcr.io/pterodactyl/yolks:ubuntu_22.04"
+        "J5 OBS Image": "ghcr.io/ja5vii/obs-multi-instance:latest",
+        "Ubuntu 22.04 (Fallback)": "ghcr.io/pterodactyl/yolks:ubuntu_22.04"
     },
     "file_denylist": [],
     "startup": "/home/container/startup.sh",
@@ -23,7 +24,7 @@
     "scripts": {
         "installation": {
             "script": "#!/bin/bash\napt-get update -y && apt-get install -y git\ncd /mnt/server\nif [ ! -d .git ]; then\n    git clone ${GIT_ADDRESS} .\nelse\n    git pull\nfi\nchmod +x install.sh\n./install.sh",
-            "container": "ubuntu:22.04",
+            "container": "ghcr.io/pterodactyl/installers:debian",
             "entrypoint": "bash"
         }
     },
