@@ -30,6 +30,15 @@
     },
     "variables": [
         {
+            "name": "Git Repository Address",
+            "description": "The GitHub repository to clone for the server. Default: https://github.com/Ja5vii/J5-OBS.git",
+            "env_variable": "GIT_ADDRESS",
+            "default_value": "https://github.com/Ja5vii/J5-OBS.git",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string"
+        },
+        {
             "name": "J5_MANAGER_PORT",
             "description": "Port for the J5 Instance Manager API",
             "env_variable": "J5_MANAGER_PORT",
