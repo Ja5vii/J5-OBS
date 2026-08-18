@@ -43,7 +43,7 @@ class InstanceManager:
         self.logger.info("J5 OBS Instance Manager starting...")
         
         try:
-            subprocess.Popen(["nginx", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf"), "-e", "/home/container/j5-obs/logs/nginx-error.log"])
+            subprocess.Popen(["nginx", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")])
             self.logger.info("NGINX RTMP Ingest started")
         except Exception as e:
             self.logger.error(f"Failed to start NGINX: {e}")
@@ -69,7 +69,7 @@ class InstanceManager:
         await self.db.close()
         
         try:
-            subprocess.run(["nginx", "-s", "stop", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf"), "-e", "/home/container/j5-obs/logs/nginx-error.log"])
+            subprocess.run(["nginx", "-s", "stop", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")])
         except Exception:
             pass
             
