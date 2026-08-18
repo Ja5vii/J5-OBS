@@ -8,6 +8,13 @@ LOG_DIR="${INSTALL_DIR}/j5-obs/logs"
 
 mkdir -p "${LOG_DIR}" "${INSTALL_DIR}/instances" "${INSTALL_DIR}/j5-obs/config" "${INSTALL_DIR}/j5-obs/database"
 
+# Auto-update from GitHub
+echo "Checking for updates from GitHub..."
+if [ -d "${INSTALL_DIR}/.git" ]; then
+    git fetch origin main || true
+    git reset --hard origin/main || true
+fi
+
 echo "$$" > "${PID_FILE}"
 
 if command -v pulseaudio >/dev/null 2>&1; then
