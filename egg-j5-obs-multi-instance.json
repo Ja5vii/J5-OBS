@@ -10,8 +10,7 @@
     "description": "Multi-instance OBS Studio host for Pterodactyl. Manages N independent OBS instances with isolated configs, displays, WebSocket, and RTMP within a single Game Server.",
     "features": null,
     "docker_images": {
-        "J5 OBS Image": "ghcr.io/ja5vii/obs-multi-instance:latest",
-        "Ubuntu 22.04 (Fallback)": "ghcr.io/pterodactyl/yolks:ubuntu_22.04"
+        "ghcr.io/ja5vii/obs-multi-instance:latest": "ghcr.io/ja5vii/obs-multi-instance:latest"
     },
     "file_denylist": [],
     "startup": "/home/container/startup.sh",
