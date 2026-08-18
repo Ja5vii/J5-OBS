@@ -375,6 +375,7 @@ def create_api_app(manager):
 
     app.router.add_get("/api/branding/active", get_active_branding)
     app.router.add_post("/api/admin/branding", publish_branding)
+    app.router.add_post("/api/admin/branding/upload", upload_branding_logo)
     app.router.add_get("/api/admin/branding/versions", get_all_branding_versions)
 
     panel = os.path.join(manager.base_dir, "panel", "index.html")

@@ -25,6 +25,10 @@
         
         .modal-enter-active, .modal-leave-active { transition: all 0.3s ease; }
         .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
+        
+        /* Dropzone para Logo */
+        .dropzone { border: 2px dashed rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 32px; text-align: center; transition: all 0.3s ease; background: rgba(99, 102, 241, 0.05); cursor: pointer; }
+        .dropzone:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
     </style>
 </head>
 <body class="antialiased min-h-screen pb-20 md:pb-0">
@@ -43,14 +47,14 @@
                     </div>
                 </div>
                 <h1 class="text-2xl font-bold text-center mb-2">J5 OBS Central</h1>
-                <p class="text-slate-400 text-center mb-8 text-sm">Inicia sesión para continuar</p>
+                <p class="text-slate-400 text-center mb-8 text-sm">Inicia sesion para continuar</p>
                 
                 <form @submit.prevent="login" class="space-y-4">
                     <div>
                         <input v-model="loginForm.username" type="text" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Usuario">
                     </div>
                     <div>
-                        <input v-model="loginForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contraseña">
+                        <input v-model="loginForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contrasena">
                     </div>
                     <button type="submit" :disabled="loading" class="w-full mobile-btn mobile-btn-primary mt-2">
                         <span v-if="!loading">Entrar</span>
@@ -96,220 +100,219 @@
 
                 <div class="p-4 border-t border-slate-800">
                     <button @click="logout" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-colors">
-                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
+                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesion
                     </button>
                 </div>
             </div>
 
-            <!-- CONTENIDO PRINCIPAL -->
-            <div class="flex-1 md:ml-64 p-4 md:p-8">
-                
+            <!-- MAIN CONTENT -->
+            <div class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
                 <!-- VISTA: INSTANCIAS -->
-                <div v-if="adminTab === 'instances'" class="max-w-5xl mx-auto">
-                    <div class="flex justify-between items-center mb-6">
+                <div v-if="adminTab === 'instances'" class="max-w-7xl mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-2xl font-bold">Mis Servidores</h2>
+                            <p class="text-slate-400 text-sm mt-1">Gestione sus nodos de OBS en tiempo real</p>
                         </div>
-                        <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary px-4 py-2 text-sm rounded-lg">
-                            <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Nuevo</span>
+                        <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary w-full sm:w-auto">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Nuevo Servidor
                         </button>
                     </div>
 
-                    <div v-if="instances.length === 0" class="text-center py-12 glass-card rounded-2xl">
-                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="server-off" class="w-8 h-8 text-slate-500"></i>
-                        </div>
-                        <p class="text-slate-400">Aún no tienes ningún servidor de streaming.</p>
-                    </div>
-
-                    <transition-group name="list" tag="div" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <div v-for="inst in instances" :key="inst.instance_id" class="glass-card rounded-2xl p-5 flex flex-col">
-                            <div class="flex justify-between items-start mb-4">
+                    <transition-group name="list" tag="div" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div v-for="inst in instances" :key="inst.instance_id" class="glass-card rounded-2xl p-5 relative group overflow-hidden flex flex-col">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            
+                            <div class="flex justify-between items-start mb-4 relative z-10">
                                 <div>
-                                    <h3 class="font-bold text-lg text-white">{{ inst.name }}</h3>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span :class="['px-2 py-0.5 rounded text-xs font-medium border', statusBadgeClass(inst.status)]">
-                                            {{ inst.status }}
-                                        </span>
-                                    </div>
+                                    <h3 class="font-bold text-lg flex items-center gap-2">
+                                        {{ inst.name }}
+                                    </h3>
+                                    <span class="text-xs font-mono text-slate-500">ID: {{ inst.instance_id.substring(0,8) }}...</span>
                                 </div>
-                                <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <span :class="['px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5', statusBadgeClass(inst.status)]">
+                                    <div :class="['w-1.5 h-1.5 rounded-full', inst.status === 'ONLINE' || inst.status === 'STREAMING' ? 'bg-current animate-pulse' : 'bg-current']"></div>
+                                    {{ inst.status }}
+                                </span>
                             </div>
 
                             <div v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" class="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-900/50 rounded-xl">
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-1">CPU</p>
+                                    <p class="text-xs text-slate-400 mb-0.5">CPU</p>
                                     <p :class="['font-medium', cpuColor(inst.instance_id)]">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-1">RAM</p>
+                                    <p class="text-xs text-slate-400 mb-0.5">RAM</p>
                                     <p class="font-medium text-slate-200">{{ getStat(inst.instance_id, 'memory_mb') }} MB</p>
                                 </div>
                             </div>
+                            <div v-else class="mb-4 p-3 bg-slate-900/30 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-sm">
+                                Servidor Apagado
+                            </div>
 
-                            <div class="mt-auto grid grid-cols-2 gap-2">
+                            <div class="mt-auto pt-4 border-t border-slate-800/50 grid grid-cols-2 gap-2 relative z-10">
                                 <button v-if="inst.status === 'STANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2">
                                     <i data-lucide="play" class="w-4 h-4"></i> Iniciar
                                 </button>
-                                <button v-else @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2">
+                                <button v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2">
                                     <i data-lucide="square" class="w-4 h-4"></i> Detener
                                 </button>
                                 <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2">
                                     <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
                                 </button>
+                                <button @click="showGuide(inst)" class="mobile-btn col-span-2 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2">
+                                    <i data-lucide="book-open" class="w-4 h-4"></i> Guia de Conexion
+                                </button>
+                                <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 absolute -top-12 right-0 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
                             </div>
-                            
-                            <button @click="showGuide(inst)" class="w-full mt-2 mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2">
-                                <i data-lucide="smartphone" class="w-4 h-4"></i> Conectar Cámara Móvil
-                            </button>
                         </div>
                     </transition-group>
                 </div>
 
                 <!-- VISTA: BRANDING (ADMIN) -->
-                <div v-if="adminTab === 'branding' && user.role === 'admin'" class="max-w-5xl mx-auto">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold">J5 Global Branding</h2>
-                            <p class="text-slate-400 text-sm mt-1">Control maestro de diseño para todos los servidores (Nodos)</p>
-                        </div>
+                <div v-if="adminTab === 'branding' && user.role === 'admin'" class="max-w-4xl mx-auto space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-check" class="text-indigo-400 w-6 h-6"></i> Global Branding Authority</h2>
+                        <p class="text-slate-400 text-sm mt-1">Control maestro de diseno para todos los servidores (Nodos)</p>
                     </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Branding Form -->
-                        <div class="lg:col-span-2 glass-card rounded-2xl p-6">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i>
-                                Assets Obligatorios (Capa 100)
-                            </h3>
-                            
-                            <div class="space-y-4">
-                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="font-bold">Watermark Position</label>
-                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
-                                    </div>
-                                    <select class="w-full px-4 py-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-600 focus:border-indigo-500">
-                                        <option>RIGHT EDGE</option>
-                                        <option>LEFT EDGE</option>
-                                        <option>TOP RIGHT</option>
-                                        <option>TOP LEFT</option>
-                                    </select>
-                                </div>
 
-                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="font-bold">Watermark Opacity</label>
-                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Panel de Control -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <!-- Logo Upload -->
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="image" class="text-indigo-400"></i> Logotipo Obligatorio</h3>
+                                <div class="dropzone" @click="$refs.logoInput.click()" @dragover.prevent @drop.prevent="handleLogoDrop">
+                                    <input type="file" ref="logoInput" class="hidden" accept="image/png, image/jpeg, image/gif" @change="handleLogoSelect">
+                                    <div v-if="!logoPreview" class="flex flex-col items-center gap-3">
+                                        <i data-lucide="upload-cloud" class="w-10 h-10 text-indigo-400"></i>
+                                        <div>
+                                            <p class="font-medium text-slate-200">Haz clic o arrastra tu logo aqui</p>
+                                            <p class="text-xs text-slate-500 mt-1">PNG o GIF con transparencia (Max 2MB)</p>
+                                        </div>
                                     </div>
-                                    <input type="range" min="0" max="100" value="80" class="w-full accent-indigo-500">
+                                    <div v-else class="relative">
+                                        <img :src="logoPreview" class="max-h-32 mx-auto rounded-lg" alt="Logo preview">
+                                        <button @click.stop="logoPreview = null; logoFile = null" class="absolute -top-3 -right-3 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                    </div>
                                 </div>
-                                
-                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-                                    <div class="flex justify-between items-center mb-2">
+                            </div>
+
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="layout" class="text-indigo-400"></i> Configuracion de Layout</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="font-bold">Watermark Position</label>
+                                        <select v-model="brandingConfig.watermark.pos" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white">
+                                            <option value="RIGHT_EDGE">Right Edge</option>
+                                            <option value="BOTTOM_RIGHT">Bottom Right</option>
+                                            <option value="TOP_LEFT">Top Left</option>
+                                        </select>
+                                    </div>
+                                    <div>
                                         <label class="font-bold">Chat Overlay Style</label>
-                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
+                                        <select v-model="brandingConfig.chat.style" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white">
+                                            <option value="default">Default Dark</option>
+                                            <option value="glass">Glass Morphism</option>
+                                            <option value="hidden">Hidden</option>
+                                        </select>
                                     </div>
-                                    <select class="w-full px-4 py-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-600 focus:border-indigo-500">
-                                        <option>J5 Default (Transparent)</option>
-                                        <option>J5 Dark Box</option>
-                                        <option>J5 Neon</option>
-                                    </select>
                                 </div>
                             </div>
                             
-                            <div class="mt-6 flex gap-4">
-                                <button @click="publishBranding" class="flex-1 mobile-btn mobile-btn-primary">
-                                    <i data-lucide="upload-cloud" class="w-5 h-5"></i> Publish Version
-                                </button>
-                                <button class="px-6 mobile-btn bg-slate-700 hover:bg-slate-600 text-white">
-                                    <i data-lucide="eye" class="w-5 h-5"></i> Preview
-                                </button>
-                            </div>
+                            <button @click="publishBranding" :disabled="isPublishing" class="w-full mobile-btn mobile-btn-primary py-4 text-lg">
+                                <i data-lucide="upload-cloud" class="w-5 h-5"></i> 
+                                <span v-if="!isPublishing">Publicar Version (Aplicar a Nodos)</span>
+                                <span v-else>Subiendo y publicando...</span>
+                            </button>
                         </div>
-                        
+
                         <!-- Deployment Status -->
-                        <div class="space-y-6">
+                        <div class="space-y-4">
                             <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4">Deployment Status</h3>
-                                <div class="space-y-3">
-                                    <div class="flex justify-between items-center p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                <h3 class="text-lg font-bold mb-4">Estado Global</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                                         <span class="text-emerald-400 font-medium">Global Status</span>
-                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE</span>
+                                        <span class="flex h-3 w-3"><span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>
                                     </div>
-                                    <div class="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl">
+                                    <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                                         <span class="text-slate-400">Current Version</span>
-                                        <span class="font-mono text-indigo-400">v2.4.1</span>
-                                    </div>
-                                    <div class="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl">
-                                        <span class="text-slate-400">Active Instances</span>
-                                        <span class="font-bold">{{ instances.length }}</span>
+                                        <span class="font-mono text-indigo-400">v2.5.0</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4">Security</h3>
-                                <p class="text-sm text-slate-400 mb-4">
-                                    Los nodos validan el paquete de branding usando firmas de hash SHA-256 antes de inyectarlo en la capa 100 (OBS).
+                            <div class="glass-card rounded-2xl p-6 border-l-4 border-rose-500">
+                                <h3 class="text-lg font-bold mb-4">Seguridad</h3>
+                                <p class="text-sm text-slate-400">
+                                    Los nodos validan el paquete de branding usando firmas de hash SHA-256 antes de inyectarlo.
                                 </p>
-                                <div class="p-3 bg-slate-900/80 rounded-lg text-xs font-mono text-slate-500 break-all border border-slate-800">
-                                    SHA256: 8f4e3c1b2a9d...
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- VISTA: USUARIOS -->
-                <div v-if="adminTab === 'users' && user.role === 'admin'" class="max-w-5xl mx-auto">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
-                        <button @click="showUserModal = true" class="mobile-btn mobile-btn-primary px-4 py-2 text-sm rounded-lg">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo
+                <div v-if="adminTab === 'users' && user.role === 'admin'" class="max-w-4xl mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold">Gestion de Usuarios</h2>
+                            <p class="text-slate-400 text-sm mt-1">Administra los accesos al panel</p>
+                        </div>
+                        <button @click="showUserModal = true" class="mobile-btn mobile-btn-primary w-full sm:w-auto">
+                            <i data-lucide="user-plus" class="w-5 h-5"></i> Anadir Usuario
                         </button>
                     </div>
-                    
+
                     <div class="glass-card rounded-2xl overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-900/50 border-b border-slate-800 text-sm text-slate-400">
-                                    <th class="p-4 font-medium">Nombre de Usuario</th>
-                                    <th class="p-4 font-medium">Tipo</th>
-                                    <th class="p-4 font-medium text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <transition-group name="list" tag="tbody">
-                                <tr v-for="u in usersList" :key="u.id" class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                                    <td class="p-4">{{ u.username }}</td>
-                                    <td class="p-4">
-                                        <span :class="['px-2 py-1 rounded text-xs font-medium', u.role==='admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-700 text-slate-300']">
-                                            {{ u.role === 'admin' ? 'Administrador' : 'Cliente' }}
-                                        </span>
-                                    </td>
-                                    <td class="p-4 text-right">
-                                        <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </transition-group>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-900/80 text-slate-400 text-sm">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">Usuario</th>
+                                        <th class="px-6 py-4 font-medium">Rol</th>
+                                        <th class="px-6 py-4 font-medium">Creado</th>
+                                        <th class="px-6 py-4 text-right font-medium">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <transition-group name="list" tag="tbody">
+                                    <tr v-for="u in usersList" :key="u.id" class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                                        <td class="px-6 py-4 font-bold flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center">{{ u.username.charAt(0).toUpperCase() }}</div>
+                                            {{ u.username }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span :class="['px-2 py-1 rounded text-xs font-bold uppercase', u.role === 'admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-700 text-slate-300']">{{ u.role }}</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-slate-400 text-sm">{{ new Date(u.created_at).toLocaleDateString() }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </transition-group>
+                            </table>
+                        </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- NAV MOVIL BOTTOM -->
-            <div class="md:hidden glass fixed bottom-0 inset-x-0 z-40 border-t border-slate-800 flex justify-around p-2">
+            <!-- MENU MOVIL BOTTOM (APP STYLE) -->
+            <div class="md:hidden glass fixed bottom-0 left-0 right-0 border-t border-slate-800 flex justify-around p-2 z-40">
                 <button @click="adminTab = 'instances'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'instances' ? 'text-indigo-400' : 'text-slate-500']">
-                    <i data-lucide="monitor-play" class="w-6 h-6"></i>
+                    <i data-lucide="monitor-play" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Servidores</span>
                 </button>
+                <button v-if="user.role === 'admin'" @click="adminTab = 'branding'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'branding' ? 'text-indigo-400' : 'text-slate-500']">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-medium">Branding</span>
+                </button>
                 <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'users' ? 'text-indigo-400' : 'text-slate-500']">
-                    <i data-lucide="users" class="w-6 h-6"></i>
+                    <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Usuarios</span>
                 </button>
             </div>
@@ -317,17 +320,18 @@
 
         <!-- MODALES -->
         <transition name="modal">
-            <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+            <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showCreateModal = false"></div>
+                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                    <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Nuevo Servidor OBS</h3>
                         <button @click="showCreateModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <input v-model="form.name" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nombre (ej: Evento Principal)">
+                    <div class="space-y-4">
+                        <input v-model="form.name" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nombre (ej. Nodo EU-1)">
                         <select v-model="form.owner_id" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
                             <option value="">Asignar a un usuario...</option>
-                            <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
+                            <option v-for="u in usersList" :value="u.id">{{ u.username }}</option>
                         </select>
                         <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Servidor</button>
                     </div>
@@ -336,39 +340,43 @@
         </transition>
 
         <transition name="modal">
-            <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                        <h3 class="font-bold text-lg">Añadir Usuario</h3>
+            <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showUserModal = false"></div>
+                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-lg">Registrar Usuario</h3>
                         <button @click="showUserModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <input v-model="userForm.username" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nombre de usuario (ej: victor)">
-                        <input v-model="userForm.password" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contraseña">
+                    <form @submit.prevent="createUser" class="space-y-4">
+                        <input v-model="userForm.username" type="text" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Usuario">
+                        <input v-model="userForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contrasena">
                         <select v-model="userForm.role" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
                             <option value="user">Cliente Normal</option>
-                            <option value="admin">Administrador Total</option>
+                            <option value="admin">Administrador</option>
                         </select>
-                        <button @click="createUser" class="w-full mobile-btn mobile-btn-primary mt-2">Registrar Usuario</button>
-                    </div>
+                        <button type="submit" class="w-full mobile-btn mobile-btn-primary mt-2">Registrar</button>
+                    </form>
                 </div>
             </div>
         </transition>
 
         <transition name="modal">
-            <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+            <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showWizardModal = false"></div>
+                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                    <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Destino ({{ activeInstance?.name }})</h3>
                         <button @click="showWizardModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <p class="text-sm text-slate-400 mb-2">¿Dónde va a salir el directo final?</p>
+                    <div class="space-y-4">
                         <select v-model="wizardForm.platform" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
-                            <option>Twitch</option><option>Kick</option><option>YouTube</option><option>Custom</option>
+                            <option value="Twitch">Twitch</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Kick">Kick</option>
+                            <option value="Custom">Custom RTMP</option>
                         </select>
                         <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="URL del Servidor (RTMP)">
-                        <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Clave de Transmisión">
+                        <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Clave de Transmision">
                         <button @click="saveWizard" class="w-full mobile-btn mobile-btn-primary mt-2">Guardar Destino</button>
                     </div>
                 </div>
@@ -376,94 +384,105 @@
         </transition>
 
         <transition name="modal">
-            <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div class="glass border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div class="p-4 border-b border-slate-800 flex justify-between items-center shrink-0 bg-slate-900/50">
-                        <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="smartphone" class="w-5 h-5 text-indigo-400"></i> Conectar Cámara</h3>
+            <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showGuideModal = false"></div>
+                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="wifi" class="text-indigo-400"></i> Como emitir hacia aqui</h3>
                         <button @click="showGuideModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="p-6 overflow-y-auto space-y-6">
-                        <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4">
-                            <h4 class="font-bold text-indigo-400 mb-2 text-sm uppercase tracking-wider">Paso 1: La App</h4>
-                            <p class="text-sm text-slate-300">Descarga la app <strong>Moblin</strong> en tu teléfono.</p>
+                    <div class="space-y-6">
+                        <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                            <p class="text-sm text-indigo-200 mb-2 font-medium">1. URL del Servidor</p>
+                            <div class="flex items-center gap-2">
+                                <code class="flex-1 bg-black/50 p-2 rounded text-indigo-400 text-sm break-all">rtmp://{{ window.location.hostname }}:1935/live</code>
+                                <button @click="copyText('rtmp://' + window.location.hostname + ':1935/live')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                            </div>
                         </div>
-                        <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
-                            <h4 class="font-bold text-slate-200 mb-2 text-sm uppercase tracking-wider">Paso 2: Enviar Vídeo</h4>
-                            <div class="flex gap-2">
-                                <input type="text" readonly :value="`rtmp://${window.location.hostname}:1935/live/${activeInstance?.connection_id}`" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono">
-                                <button @click="copyText(`rtmp://${window.location.hostname}:1935/live/${activeInstance?.connection_id}`)" class="bg-slate-700 hover:bg-slate-600 px-3 rounded-lg"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                        <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                            <p class="text-sm text-rose-200 mb-2 font-medium">2. Clave de Transmision</p>
+                            <div class="flex items-center gap-2">
+                                <code class="flex-1 bg-black/50 p-2 rounded text-rose-400 text-sm">
+                                    {{ showKey ? activeInstance.stream_key : '••••••••••••••••••••' }}
+                                </code>
+                                <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i :data-lucide="showKey ? 'eye-off' : 'eye'" class="w-4 h-4"></i></button>
+                                <button @click="copyText(activeInstance.stream_key)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </transition>
+
     </div>
 
     <script>
         const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
-        
+
         createApp({
             setup() {
                 const authenticated = ref(false);
                 const token = ref('');
                 const loading = ref(false);
                 const error = ref('');
-                const user = ref({ id: '', role: 'user', username: '' });
+                const user = ref(null);
                 const loginForm = ref({ username: '', password: '' });
-                
                 const adminTab = ref('instances');
                 const instances = ref([]);
                 const stats = ref({});
                 const usersList = ref([]);
-                
+                const activeInstance = ref(null);
+                let pollInterval = null;
+
                 const showCreateModal = ref(false);
                 const form = ref({ name: '', template: '', owner_id: '' });
                 const showUserModal = ref(false);
                 const userForm = ref({ username: '', password: '', role: 'user' });
-                const showProfileModal = ref(false);
 
                 const showWizardModal = ref(false);
                 const wizardStep = ref(1);
-                const activeInstance = ref(null);
                 const wizardForm = ref({ platform: 'Twitch', rtmp_url: '', rtmp_key: '' });
-                
                 const showGuideModal = ref(false);
                 const showKey = ref(false);
-
-                let pollInterval = null;
-                const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` });
+                
+                const brandingConfig = ref({ watermark: { opacity: 80, pos: 'RIGHT_EDGE' }, chat: { style: 'default' } });
+                const logoFile = ref(null);
+                const logoPreview = ref(null);
+                const isPublishing = ref(false);
+                const logoInput = ref(null);
 
                 const Toast = Swal.mixin({
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,
-                    timerProgressBar: true,
-                    background: '#1e293b',
-                    color: '#fff'
+                    timerProgressBar: true
                 });
 
+                const headers = () => ({ 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' });
+
                 const login = async () => {
-                    loading.value = true; error.value = '';
+                    loading.value = true;
+                    error.value = '';
                     try {
                         let res;
-                        if(token.value && !loginForm.value.username) {
-                            res = await fetch('/api/status', { headers: headers() });
+                        if (token.value) {
+                            res = await fetch('/api/users/me', { headers: headers() });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Sesión expirada');
-                            user.value = data.user;
+                            if (!res.ok) throw new Error(data.error || 'Sesion expirada');
+                            user.value = data;
                         } else {
                             res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(loginForm.value), headers: {'Content-Type': 'application/json'} });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Credenciales inválidas');
-                            token.value = data.token; user.value = data.user;
+                            if (!res.ok) throw new Error(data.error || 'Login failed');
+                            token.value = data.token;
+                            user.value = data.user;
                         }
                         authenticated.value = true;
                         localStorage.setItem('j5_token', token.value);
                         fetchData();
-                        if(user.value.role === 'admin') { fetchUsers(); }
-                        pollInterval = setInterval(fetchData, 3000); 
+                        if(user.value.role === 'admin') fetchUsers();
+                        pollInterval = setInterval(fetchStats, 3000);
                         nextTick(() => { if(window.lucide) lucide.createIcons(); });
                     } catch (e) { error.value = e.message; token.value = ''; localStorage.removeItem('j5_token'); } finally { loading.value = false; }
                 };
@@ -471,36 +490,54 @@
                 const logout = () => { authenticated.value = false; token.value = ''; localStorage.removeItem('j5_token'); if (pollInterval) clearInterval(pollInterval); };
 
                 const fetchData = async () => {
-                    if (!authenticated.value) return;
                     try {
-                        const [iR] = await Promise.all([fetch('/api/instances', { headers: headers() })]);
-                        if (iR.ok) instances.value = (await iR.json()).instances || [];
-                        else if (iR.status === 401) return logout();
-                        
-                        instances.value.forEach(async (inst) => {
-                            if(inst.status === 'STREAMING' || inst.status === 'ONLINE') {
-                                try {
-                                    const sr = await fetch(`/api/instances/${inst.instance_id}/stats`, {headers: headers()});
-                                    if(sr.ok) stats.value[inst.instance_id] = await sr.json();
-                                }catch(e){}
-                            }
-                        });
+                        const res = await fetch('/api/instances', { headers: headers() });
+                        const data = await res.json();
+                        instances.value = data.instances;
+                        await fetchStats();
                         nextTick(() => { if(window.lucide) lucide.createIcons(); });
-                    } catch(e) {}
+                    } catch (e) { console.error('Error fetching data', e); }
                 };
 
-                const fetchUsers = async () => { try { const res = await fetch('/api/users', { headers: headers() }); if (res.ok) usersList.value = (await res.json()).users || []; } catch(e){} };
+                const fetchUsers = async () => {
+                    try {
+                        const res = await fetch('/api/users', { headers: headers() });
+                        const data = await res.json();
+                        usersList.value = data.users;
+                    } catch (e) { console.error('Error fetching users', e); }
+                };
+
+                const fetchStats = async () => {
+                    try {
+                        const res = await fetch('/api/stats', { headers: headers() });
+                        const data = await res.json();
+                        stats.value = data;
+                        const resInst = await fetch('/api/instances', { headers: headers() });
+                        const dataInst = await resInst.json();
+                        instances.value = dataInst.instances;
+                    } catch (e) { console.error('Error fetching stats', e); }
+                };
 
                 const executeAction = async (id, action) => {
                     try {
+                        const inst = instances.value.find(i => i.instance_id === id);
+                        if(action === 'start') {
+                            if(!inst.rtmp_url || !inst.rtmp_key) {
+                                Swal.fire({ title: 'Destino no configurado', text: 'Configura el destino en Ajustes antes de iniciar.', icon: 'warning', background: '#1e293b', color: '#fff' });
+                                return;
+                            }
+                        }
+                        if(action === 'stop') {
+                            if(inst.status === 'STREAMING' || inst.status === 'ONLINE') {
+                                const confirm = await Swal.fire({ title: 'Detener Servidor', text: 'Se cortara el directo actual. Continuar?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', background: '#1e293b', color: '#fff' });
+                                if(!confirm.isConfirmed) return;
+                            }
+                        }
                         const res = await fetch(`/api/instances/${id}/${action}`, { method: 'POST', headers: headers() });
-                        const data = await res.json();
-                        if(!res.ok) throw new Error(data.error || 'Error al enviar orden');
-                        Toast.fire({ icon: 'success', title: `Orden enviada: ${action}` });
+                        if(!res.ok) throw new Error('Error ejecutando accion');
+                        Toast.fire({ icon: 'success', title: `Accion ${action} enviada` });
                         fetchData();
-                    } catch (e) {
-                        Toast.fire({ icon: 'error', title: e.message });
-                    }
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
                 };
 
                 const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
@@ -516,11 +553,11 @@
                 };
 
                 const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; nextTick(() => { if(window.lucide) lucide.createIcons(); }); };
-                const copyText = (txt) => { navigator.clipboard.writeText(txt); Toast.fire({ icon: 'success', title: '¡Copiado al portapapeles!' }); };
+                const copyText = (txt) => { navigator.clipboard.writeText(txt); Toast.fire({ icon: 'success', title: 'Copiado al portapapeles!' }); };
 
                 const createInstance = async () => { 
                     try {
-                        if(!form.value.name || !form.value.owner_id) throw new Error('Rellena el nombre y el dueño');
+                        if(!form.value.name || !form.value.owner_id) throw new Error('Rellena el nombre y el dueno');
                         const res = await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(form.value) }); 
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'Error al crear servidor');
@@ -533,8 +570,8 @@
 
                 const deleteInstance = async (id) => { 
                     Swal.fire({
-                        title: '¿Estás seguro?', text: "Se borrará todo el servidor OBS", icon: 'warning',
-                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Sí, borrarlo'
+                        title: 'Estas seguro?', text: "Se borrara todo el servidor OBS", icon: 'warning',
+                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Si, borrarlo', background: '#1e293b', color: '#fff'
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
@@ -547,24 +584,65 @@
                     })
                 };
                 
+                // LOGO UPLOAD & BRANDING
+                const handleLogoSelect = (e) => {
+                    const file = e.target.files[0];
+                    if(!file) return;
+                    processLogoFile(file);
+                };
+                
+                const handleLogoDrop = (e) => {
+                    const file = e.dataTransfer.files[0];
+                    if(!file) return;
+                    processLogoFile(file);
+                };
+                
+                const processLogoFile = (file) => {
+                    if(file.size > 2 * 1024 * 1024) { Toast.fire({icon:'error', title:'Maximo 2MB'}); return; }
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        logoPreview.value = e.target.result;
+                        logoFile.value = { filename: file.name, data: e.target.result };
+                    };
+                    reader.readAsDataURL(file);
+                };
+
                 const publishBranding = async () => {
-                    Toast.fire({ icon: 'info', title: 'Generando paquete firmado...' });
+                    isPublishing.value = true;
                     try {
+                        let finalConfig = { ...brandingConfig.value };
+                        
+                        if(logoFile.value) {
+                            Toast.fire({ icon: 'info', title: 'Subiendo logotipo...' });
+                            const uploadRes = await fetch('/api/admin/branding/upload', {
+                                method: 'POST', headers: headers(),
+                                body: JSON.stringify({ filename: logoFile.value.filename, image_data: logoFile.value.data })
+                            });
+                            const uploadData = await uploadRes.json();
+                            if(!uploadRes.ok) throw new Error(uploadData.error || 'Error subiendo logo');
+                            finalConfig.logo_filename = uploadData.filename;
+                        }
+
+                        Toast.fire({ icon: 'info', title: 'Generando paquete firmado...' });
                         const payload = {
-                            id: 'v2.4.1-' + Date.now(),
-                            version_tag: 'v2.4.1',
-                            config_json: { watermark: { opacity: 80, pos: 'RIGHT_EDGE' }, chat: { style: 'default' } },
+                            id: 'v2.5.0-' + Date.now(),
+                            version_tag: 'v2.5.0',
+                            config_json: finalConfig,
                             signature: '8f4e3c1b2a9d'
                         };
                         const res = await fetch('/api/admin/branding', { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
                         if(!res.ok) throw new Error('Error al publicar branding');
-                        Toast.fire({ icon: 'success', title: 'Branding v2.4.1 Publicado Globalmente' });
-                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                        Toast.fire({ icon: 'success', title: 'Branding Publicado Globalmente' });
+                    } catch (e) { 
+                        Toast.fire({ icon: 'error', title: e.message }); 
+                    } finally {
+                        isPublishing.value = false;
+                    }
                 };
 
                 const createUser = async () => { 
                     try {
-                        if(!userForm.value.username || !userForm.value.password) throw new Error('Rellena usuario y contraseña');
+                        if(!userForm.value.username || !userForm.value.password) throw new Error('Rellena usuario y contrasena');
                         const res = await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) }); 
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'El usuario ya existe o hay un error');
@@ -578,8 +656,8 @@
 
                 const deleteUser = async (id) => { 
                     Swal.fire({
-                        title: '¿Eliminar usuario?', text: "Perderá el acceso al panel", icon: 'warning',
-                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Eliminar'
+                        title: 'Eliminar usuario?', text: "Perdera el acceso al panel", icon: 'warning',
+                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Eliminar', background: '#1e293b', color: '#fff'
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
@@ -606,8 +684,10 @@
                 return {
                     authenticated, token, loading, error, user, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
-                    showCreateModal, form, showUserModal, userForm, 
+                    showCreateModal, form, showUserModal, userForm,
                     showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window,
+                    brandingConfig, logoPreview, logoFile, isPublishing, logoInput,
+                    handleLogoSelect, handleLogoDrop,
                     createInstance, deleteInstance, createUser, deleteUser, publishBranding,
                     executeAction, showWizard, saveWizard, showGuide, copyText, getStat, statusBadgeClass, cpuColor,
                     login, logout, fetchData
