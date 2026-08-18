@@ -393,7 +393,8 @@
                     </div>
                     <div class="space-y-4">
                         <select v-model="wizardForm.platform" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
-                            <option value="Twitch">Twitch</option>
+                            <option value="Twitch">Twitch (Global)</option>
+                            <option value="TwitchES">Twitch (Espana)</option>
                             <option value="YouTube">YouTube</option>
                             <option value="Kick">Kick</option>
                             <option value="Custom">Custom RTMP</option>
@@ -568,9 +569,10 @@
 
                 
                 const PLATFORM_URLS = {
-                    Twitch: 'rtmp://live.twitch.tv/app/',
-                    YouTube: 'rtmp://a.rtmp.youtube.com/live2/',
-                    Kick: 'rtmp://fa723fc1b171.global-contribute.live-video.net/app/'
+                    Twitch: 'rtmps://ingest.global-contribute.live-video.net/app/',
+                    TwitchES: 'rtmps://mad02.contribute.live-video.net/app/',
+                    YouTube: 'rtmps://a.rtmp.youtube.com/live2/',
+                    Kick: 'rtmps://fa723fc1b171.global-contribute.live-video.net/app/'
                 };
                 const platformRtmpUrl = (p) => PLATFORM_URLS[p] || '';
                 const onPlatformChange = () => {
