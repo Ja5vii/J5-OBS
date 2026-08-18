@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import asyncio
 import subprocess
@@ -7,7 +7,7 @@ import signal
 
 
 class ProcessManager:
-    __slots__ = ("manager", "config", "logger", "_processes", "_is_unix")
+    __slots__ = ("manager", "config", "logger", "_processes", "_pulse_processes", "_is_unix")
 
     def __init__(self, manager, config, logger):
         self.manager = manager
@@ -69,6 +69,35 @@ class ProcessManager:
 
 
     async def start_instance(self, instance_id):
+
+        # [J5 GLOBAL BRANDING] Tamper Protection Check
+        try:
+            branding = await self.manager.db.get_active_branding()
+            if not branding:
+                self.logger.error(f"TAMPER DETECTED: No mandatory branding configured for {instance_id}")
+                await self.manager.db.log_audit_event("SYSTEM", "BRANDING_TAMPER_DETECTED", instance_id)
+                await self.manager.db.update_instance(instance_id, status="ERROR")
+                raise ValueError("J5 OBS branding package unavailable. Please try again.")
+            
+            # Here we would normally verify the signature hash
+            # If invalid: raise ValueError("Invalid branding signature")
+            
+            # Export branding config to a JSON file for the internal OBS websocket client to inject
+            inst_dir = self._dir(instance_id)
+            import json
+            import os
+            self._ensure_dirs(instance_id)
+            with open(os.path.join(inst_dir, "j5_branding.json"), "w", encoding="utf-8") as bf:
+                if isinstance(branding["config_json"], str):
+                    json.dump(json.loads(branding["config_json"]), bf)
+                else:
+                    json.dump(branding["config_json"], bf)
+        except ValueError:
+            raise
+        except Exception as e:
+            self.logger.error(f"Branding validation failed: {e}")
+            await self.manager.db.update_instance(instance_id, status="ERROR")
+            raise ValueError("J5 OBS branding package validation failed.")
         inst = await self.manager.db.get_instance(instance_id)
         if not inst:
             raise ValueError(f"Instance {instance_id} not found")
@@ -225,3 +254,4 @@ class ProcessManager:
                 
             with open(scene_col_path, "w") as f:
                 json.dump(scene_data, f, indent=2)
+

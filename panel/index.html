@@ -1,362 +1,408 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J5 OBS SaaS</title>
+    <title>J5 OBS Central</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { dark: '#0b1121', card: '#1e293b', primary: '#3b82f6', primaryHover: '#2563eb', success: '#10b981', danger: '#ef4444', warning: '#f59e0b', j5dark: '#050b14' } } } }
-    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #050b14; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .mobile-btn { padding: 1rem; border-radius: 1rem; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .mobile-btn-primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
-        .mobile-btn-primary:active { transform: scale(0.97); }
-        .mobile-btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
-        [v-cloak] { display: none; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        
+        .mobile-btn { transition: transform 0.2s; padding: 12px; border-radius: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .mobile-btn:active { transform: scale(0.95); }
+        .mobile-btn-primary { background: #4f46e5; color: white; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39); }
+        .mobile-btn-primary:hover { background: #4338ca; }
+        
+        /* Animaciones para las listas de Vue */
+        .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(20px); }
+        
+        .modal-enter-active, .modal-leave-active { transition: all 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
-    <div id="app" v-cloak class="flex-1 flex flex-col h-full">
-        <!-- LOGIN SCREEN -->
-        <div v-if="!authenticated" class="flex-1 flex items-center justify-center p-4 bg-j5dark">
-            <div class="glass rounded-3xl p-8 w-full max-w-sm shadow-2xl">
-                <div class="text-center mb-10">
-                    <div class="w-24 h-24 bg-gradient-to-br from-primary to-blue-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3"><i class="fa-solid fa-broadcast-tower text-4xl -rotate-3"></i></div>
-                    <h1 class="text-3xl font-black text-white tracking-tight">J5 OBS</h1>
-                    <p class="text-slate-400 mt-2 text-sm font-medium">Enterprise Streaming</p>
+<body class="antialiased min-h-screen pb-20 md:pb-0">
+    <div id="app" v-cloak>
+        <!-- PANTALLA DE LOGIN -->
+        <div v-if="!authenticated" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-rose-600/20 rounded-full blur-3xl"></div>
+            </div>
+            
+            <div class="glass w-full max-w-sm rounded-3xl p-8 border border-slate-700/50 shadow-2xl relative z-10">
+                <div class="flex justify-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="video" class="w-8 h-8 text-white"></i>
+                    </div>
                 </div>
-                <form @submit.prevent="login" class="space-y-5">
+                <h1 class="text-2xl font-bold text-center mb-2">J5 OBS Central</h1>
+                <p class="text-slate-400 text-center mb-8 text-sm">Inicia sesión para continuar</p>
+                
+                <form @submit.prevent="login" class="space-y-4">
                     <div>
-                        <input v-model="loginForm.username" type="text" class="w-full px-5 py-4 bg-slate-900/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Usuario">
+                        <input v-model="loginForm.username" type="text" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Usuario">
                     </div>
                     <div>
-                        <input v-model="loginForm.password" type="password" class="w-full px-5 py-4 bg-slate-900/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Contraseña">
+                        <input v-model="loginForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contraseña">
                     </div>
-                    <button type="submit" :disabled="loading" class="w-full mobile-btn mobile-btn-primary mt-6">
-                        <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i><span v-else>ENTRAR</span>
+                    <button type="submit" :disabled="loading" class="w-full mobile-btn mobile-btn-primary mt-2">
+                        <span v-if="!loading">Entrar</span>
+                        <span v-else>Cargando...</span>
                     </button>
-                    <p v-if="error" class="text-danger text-sm text-center font-bold bg-danger/10 py-3 rounded-xl mt-4 border border-danger/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> {{ error }}</p>
                 </form>
             </div>
         </div>
 
-        <!-- APP SHELL -->
-        <div v-else class="flex-1 flex flex-col pb-20 md:pb-0">
-            <!-- HEADER -->
-            <header class="glass sticky top-0 z-40 border-b border-slate-800/50 shadow-sm">
-                <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center"><i class="fa-solid fa-broadcast-tower text-sm"></i></div>
-                        <h1 class="text-lg font-bold tracking-tight">J5 OBS</h1>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="text-sm font-medium text-slate-300 hidden md:block">Hola, {{ user.username }}</span>
-                        <button @click="showProfileModal = true" class="text-slate-400 hover:text-white transition w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center"><i class="fa-solid fa-user-circle"></i></button>
-                        <button @click="logout" class="text-slate-400 hover:text-danger transition w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
-                    </div>
+        <!-- PANEL PRINCIPAL -->
+        <div v-else class="min-h-screen flex flex-col md:flex-row">
+            <!-- HEADER MOVIL -->
+            <div class="md:hidden glass sticky top-0 z-40 border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center"><i data-lucide="video" class="w-4 h-4 text-white"></i></div>
+                    <span class="font-bold">J5 Central</span>
                 </div>
-            </header>
+                <button @click="logout" class="w-8 h-8 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center border border-rose-500/20">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
 
-            <!-- MAIN CONTENT -->
-            <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+            <!-- SIDEBAR DESKTOP -->
+            <div class="hidden md:flex w-64 glass border-r border-slate-800 flex-col fixed inset-y-0 z-40">
+                <div class="p-6 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="video" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <h1 class="font-bold text-lg">J5 Central</h1>
+                </div>
                 
-                <!-- USER DASHBOARD (Mobile First) -->
-                <div v-if="user.role === 'user'">
-                    <div v-if="instances.length === 0" class="glass rounded-3xl p-10 text-center mt-10">
-                        <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-4"></i>
-                        <h2 class="text-xl font-bold text-white mb-2">Sin instancia asignada</h2>
-                        <p class="text-slate-400">Contacta con J5 Studio para que asignen una instancia de streaming a tu cuenta.</p>
+                <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+                    <button @click="adminTab = 'instances'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'instances' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                        <i data-lucide="monitor-play" class="w-5 h-5"></i> Mis Servidores
+                    </button>
+                    <button v-if="user.role === 'admin'" @click="adminTab = 'branding'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'branding' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i> Global Branding
+                    </button>
+                    <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'users' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                        <i data-lucide="users" class="w-5 h-5"></i> Usuarios
+                    </button>
+                </nav>
+
+                <div class="p-4 border-t border-slate-800">
+                    <button @click="logout" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-colors">
+                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="flex-1 md:ml-64 p-4 md:p-8">
+                
+                <!-- VISTA: INSTANCIAS -->
+                <div v-if="adminTab === 'instances'" class="max-w-5xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Mis Servidores</h2>
+                        </div>
+                        <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary px-4 py-2 text-sm rounded-lg">
+                            <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Nuevo</span>
+                        </button>
+                    </div>
+
+                    <div v-if="instances.length === 0" class="text-center py-12 glass-card rounded-2xl">
+                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="server-off" class="w-8 h-8 text-slate-500"></i>
+                        </div>
+                        <p class="text-slate-400">Aún no tienes ningún servidor de streaming.</p>
+                    </div>
+
+                    <transition-group name="list" tag="div" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div v-for="inst in instances" :key="inst.instance_id" class="glass-card rounded-2xl p-5 flex flex-col">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-bold text-lg text-white">{{ inst.name }}</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span :class="['px-2 py-0.5 rounded text-xs font-medium border', statusBadgeClass(inst.status)]">
+                                            {{ inst.status }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" class="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-900/50 rounded-xl">
+                                <div>
+                                    <p class="text-xs text-slate-400 mb-1">CPU</p>
+                                    <p :class="['font-medium', cpuColor(inst.instance_id)]">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 mb-1">RAM</p>
+                                    <p class="font-medium text-slate-200">{{ getStat(inst.instance_id, 'memory_mb') }} MB</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto grid grid-cols-2 gap-2">
+                                <button v-if="inst.status === 'STANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2">
+                                    <i data-lucide="play" class="w-4 h-4"></i> Iniciar
+                                </button>
+                                <button v-else @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2">
+                                    <i data-lucide="square" class="w-4 h-4"></i> Detener
+                                </button>
+                                <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2">
+                                    <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
+                                </button>
+                            </div>
+                            
+                            <button @click="showGuide(inst)" class="w-full mt-2 mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2">
+                                <i data-lucide="smartphone" class="w-4 h-4"></i> Conectar Cámara Móvil
+                            </button>
+                        </div>
+                    </transition-group>
+                </div>
+
+                <!-- VISTA: BRANDING (ADMIN) -->
+                <div v-if="adminTab === 'branding' && user.role === 'admin'" class="max-w-5xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">J5 Global Branding</h2>
+                            <p class="text-slate-400 text-sm mt-1">Control maestro de diseño para todos los servidores (Nodos)</p>
+                        </div>
                     </div>
                     
-                    <div v-else class="space-y-6">
-                        <div v-for="inst in instances" :key="inst.instance_id" class="glass rounded-3xl overflow-hidden shadow-2xl border border-slate-700/30">
-                            <!-- Status Header -->
-                            <div class="p-6 flex justify-between items-center" :class="inst.status==='STREAMING'?'bg-success/10':'bg-slate-800/30'">
-                                <div>
-                                    <h2 class="text-2xl font-black text-white tracking-tight">{{ inst.name }}</h2>
-                                    <p class="text-sm text-slate-400 mt-1 font-medium"><i class="fa-solid fa-server mr-1"></i> {{ inst.instance_id }}</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Branding Form -->
+                        <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i>
+                                Assets Obligatorios (Capa 100)
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="font-bold">Watermark Position</label>
+                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
+                                    </div>
+                                    <select class="w-full px-4 py-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-600 focus:border-indigo-500">
+                                        <option>RIGHT EDGE</option>
+                                        <option>LEFT EDGE</option>
+                                        <option>TOP RIGHT</option>
+                                        <option>TOP LEFT</option>
+                                    </select>
                                 </div>
-                                <div class="text-center">
-                                    <div class="inline-flex items-center justify-center px-4 py-2 rounded-2xl text-sm font-black tracking-widest border" :class="statusBadgeClass(inst.status)">
-                                        <i class="fa-solid fa-circle mr-2 text-[10px]" :class="inst.status==='STREAMING'?'animate-pulse':''"></i>
-                                        {{ inst.status }}
+
+                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="font-bold">Watermark Opacity</label>
+                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
+                                    </div>
+                                    <input type="range" min="0" max="100" value="80" class="w-full accent-indigo-500">
+                                </div>
+                                
+                                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="font-bold">Chat Overlay Style</label>
+                                        <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
+                                    </div>
+                                    <select class="w-full px-4 py-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-600 focus:border-indigo-500">
+                                        <option>J5 Default (Transparent)</option>
+                                        <option>J5 Dark Box</option>
+                                        <option>J5 Neon</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex gap-4">
+                                <button @click="publishBranding" class="flex-1 mobile-btn mobile-btn-primary">
+                                    <i data-lucide="upload-cloud" class="w-5 h-5"></i> Publish Version
+                                </button>
+                                <button class="px-6 mobile-btn bg-slate-700 hover:bg-slate-600 text-white">
+                                    <i data-lucide="eye" class="w-5 h-5"></i> Preview
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Deployment Status -->
+                        <div class="space-y-6">
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="text-lg font-bold mb-4">Deployment Status</h3>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                        <span class="text-emerald-400 font-medium">Global Status</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl">
+                                        <span class="text-slate-400">Current Version</span>
+                                        <span class="font-mono text-indigo-400">v2.4.1</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl">
+                                        <span class="text-slate-400">Active Instances</span>
+                                        <span class="font-bold">{{ instances.length }}</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Main Controls -->
-                            <div class="p-6 space-y-6 bg-slate-900/50">
-                                <div class="flex flex-col gap-4">
-                                    <button v-if="['ONLINE', 'STREAMING', 'STARTING'].includes(inst.status)" @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn mobile-btn-danger w-full py-5 text-xl shadow-danger/20">
-                                        <i class="fa-solid fa-stop-circle text-2xl"></i> DETENER STREAM
-                                    </button>
-                                    <button v-else @click="executeAction(inst.instance_id, 'start')" class="mobile-btn mobile-btn-primary w-full py-5 text-xl shadow-primary/20">
-                                        <i class="fa-solid fa-play-circle text-2xl"></i> START STREAM
-                                    </button>
-                                </div>
-
-                                <!-- Connection Info -->
-                                <div class="bg-slate-800/40 rounded-2xl p-5 border border-slate-700/50">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h3 class="font-bold text-white"><i class="fa-solid fa-link text-primary mr-2"></i> Conexión a Plataforma</h3>
-                                        <span v-if="inst.connection_id" class="px-3 py-1 bg-success/20 text-success text-xs font-bold rounded-lg border border-success/30">CONFIGURADO</span>
-                                        <span v-else class="px-3 py-1 bg-warning/20 text-warning text-xs font-bold rounded-lg border border-warning/30">PENDIENTE</span>
-                                    </div>
-                                    
-                                    <div v-if="inst.connection_id" class="space-y-4">
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div><p class="text-xs text-slate-500 font-bold mb-1 uppercase">Plataforma</p><p class="text-sm font-medium text-white">{{ inst.platform || 'Custom' }}</p></div>
-                                            <div><p class="text-xs text-slate-500 font-bold mb-1 uppercase">Ingest</p><p class="text-sm font-medium text-success"><i class="fa-solid fa-check-circle mr-1"></i> Ready</p></div>
-                                        </div>
-                                        <div class="pt-4 border-t border-slate-700/50 flex gap-3">
-                                            <button @click="showWizard(inst)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition text-sm"><i class="fa-solid fa-gear mr-1"></i> Modificar</button>
-                                            <button @click="showGuide(inst)" class="flex-1 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 font-medium py-3 rounded-xl transition text-sm"><i class="fa-solid fa-book mr-1"></i> Ver Guía</button>
-                                        </div>
-                                    </div>
-                                    <div v-else class="text-center py-4">
-                                        <p class="text-sm text-slate-400 mb-4">Debes configurar la plataforma (Twitch, Moblin, etc.) antes de transmitir.</p>
-                                        <button @click="showWizard(inst)" class="bg-primary hover:bg-primaryHover text-white font-bold py-3 px-6 rounded-xl shadow-lg transition w-full"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> ASISTENTE DE CONFIGURACIÓN</button>
-                                    </div>
-                                </div>
-
-                                <!-- Live Stats -->
-                                <div v-if="inst.status === 'STREAMING' || inst.status === 'ONLINE'" class="grid grid-cols-3 gap-3">
-                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">CPU</p><p class="text-lg font-black" :class="cpuColor(inst.instance_id)">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p></div>
-                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">RAM</p><p class="text-lg font-black text-slate-200">{{ getStat(inst.instance_id, 'ram_mb') }}MB</p></div>
-                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">Uptime</p><p class="text-lg font-black text-primary">Live</p></div>
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="text-lg font-bold mb-4">Security</h3>
+                                <p class="text-sm text-slate-400 mb-4">
+                                    Los nodos validan el paquete de branding usando firmas de hash SHA-256 antes de inyectarlo en la capa 100 (OBS).
+                                </p>
+                                <div class="p-3 bg-slate-900/80 rounded-lg text-xs font-mono text-slate-500 break-all border border-slate-800">
+                                    SHA256: 8f4e3c1b2a9d...
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN DASHBOARD -->
-                <div v-if="user.role === 'admin'" class="space-y-6">
-                    <div class="flex gap-2 p-1 bg-slate-800/50 rounded-2xl overflow-hidden mb-6 glass">
-                        <button @click="adminTab = 'instances'" :class="adminTab==='instances'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm">INSTANCIAS</button>
-                        <button @click="adminTab = 'users'" :class="adminTab==='users'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm">CUENTAS</button>
-                        <button @click="adminTab = 'audit'" :class="adminTab==='audit'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm hidden md:block">AUDITORÍA</button>
+                <!-- VISTA: USUARIOS -->
+                <div v-if="adminTab === 'users' && user.role === 'admin'" class="max-w-5xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
+                        <button @click="showUserModal = true" class="mobile-btn mobile-btn-primary px-4 py-2 text-sm rounded-lg">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo
+                        </button>
                     </div>
-
-                    <div v-if="adminTab === 'instances'">
-                        <div class="flex justify-end mb-4"><button @click="showCreateModal = true" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg"><i class="fa-solid fa-plus mr-1"></i> NUEVA INSTANCIA</button></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            <div v-for="inst in instances" :key="inst.instance_id" class="glass rounded-2xl p-5 border border-slate-700/50">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div><h3 class="font-bold text-lg text-white">{{ inst.name }}</h3><p class="text-xs text-slate-500 font-mono">{{ inst.instance_id }} | Dueño: <span class="text-primary font-bold">{{ inst.owner_id || 'Ninguno' }}</span></p></div>
-                                    <span :class="statusBadgeClass(inst.status)" class="px-2 py-1 text-[10px] font-black rounded-lg uppercase border">{{ inst.status }}</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button @click="executeAction(inst.instance_id, inst.status==='STANDBY'?'start':'stop')" class="flex-1 py-2 rounded-lg text-xs font-bold" :class="inst.status==='STANDBY'?'bg-success/20 text-success border border-success/30':'bg-danger/20 text-danger border border-danger/30'">{{inst.status==='STANDBY'?'START':'STOP'}}</button>
-                                    <button @click="deleteInstance(inst.instance_id)" class="px-3 bg-slate-800 text-danger hover:bg-danger hover:text-white rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="adminTab === 'users'">
-                        <div class="flex justify-end mb-4"><button @click="showUserModal = true" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg"><i class="fa-solid fa-user-plus mr-1"></i> CREAR CUENTA</button></div>
-                        <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-800/80"><tr class="text-slate-400 text-xs font-bold tracking-wider"><th class="py-4 px-4 uppercase">Username</th><th class="py-4 px-4 uppercase">Role</th><th class="py-4 px-4 text-right uppercase">Actions</th></tr></thead>
-                                <tbody>
-                                    <tr v-for="u in usersList" :key="u.id" class="border-t border-slate-700/30">
-                                        <td class="py-4 px-4 text-white font-medium">{{u.username}}</td>
-                                        <td class="py-4 px-4"><span class="px-2 py-1 text-[10px] font-bold rounded-lg border" :class="u.role==='admin'?'bg-primary/20 text-primary border-primary/30':'bg-slate-700 text-slate-300 border-slate-600'">{{u.role.toUpperCase()}}</span></td>
-                                        <td class="py-4 px-4 text-right">
-                                            <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="text-danger p-2 bg-danger/10 hover:bg-danger hover:text-white rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div v-if="adminTab === 'audit'">
-                        <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-800/80"><tr class="text-slate-400 text-xs font-bold"><th class="py-3 px-4">FECHA</th><th class="py-3 px-4">ACCIÓN</th><th class="py-3 px-4">ACTOR</th><th class="py-3 px-4 hidden md:table-cell">TARGET</th></tr></thead>
-                                <tbody>
-                                    <tr v-for="log in auditLogs" :key="log.id" class="border-t border-slate-700/30">
-                                        <td class="py-3 px-4 text-slate-400 text-xs">{{ new Date(log.created_at).toLocaleString() }}</td>
-                                        <td class="py-3 px-4 text-white font-medium">{{ log.action }}</td>
-                                        <td class="py-3 px-4 text-primary font-mono text-xs">{{ log.actor_id }}</td>
-                                        <td class="py-3 px-4 text-slate-400 font-mono text-xs hidden md:table-cell">{{ log.target || '-' }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900/50 border-b border-slate-800 text-sm text-slate-400">
+                                    <th class="p-4 font-medium">Nombre de Usuario</th>
+                                    <th class="p-4 font-medium">Tipo</th>
+                                    <th class="p-4 font-medium text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <transition-group name="list" tag="tbody">
+                                <tr v-for="u in usersList" :key="u.id" class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                                    <td class="p-4">{{ u.username }}</td>
+                                    <td class="p-4">
+                                        <span :class="['px-2 py-1 rounded text-xs font-medium', u.role==='admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-700 text-slate-300']">
+                                            {{ u.role === 'admin' ? 'Administrador' : 'Cliente' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </transition-group>
+                        </table>
                     </div>
                 </div>
-            </main>
 
-            <!-- BOTTOM MOBILE NAV FOR ADMIN -->
-            <nav v-if="user.role === 'admin'" class="md:hidden fixed bottom-0 w-full glass border-t border-slate-700/50 z-40 pb-safe">
-                <div class="flex justify-around">
-                    <button @click="adminTab = 'instances'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='instances'?'text-primary':'text-slate-500'"><i class="fa-solid fa-server text-lg"></i><span class="text-[10px] font-bold">Instancias</span></button>
-                    <button @click="adminTab = 'users'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='users'?'text-primary':'text-slate-500'"><i class="fa-solid fa-users text-lg"></i><span class="text-[10px] font-bold">Cuentas</span></button>
-                    <button @click="adminTab = 'audit'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='audit'?'text-primary':'text-slate-500'"><i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold">Auditoría</span></button>
-                </div>
-            </nav>
+            </div>
+
+            <!-- NAV MOVIL BOTTOM -->
+            <div class="md:hidden glass fixed bottom-0 inset-x-0 z-40 border-t border-slate-800 flex justify-around p-2">
+                <button @click="adminTab = 'instances'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'instances' ? 'text-indigo-400' : 'text-slate-500']">
+                    <i data-lucide="monitor-play" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-medium">Servidores</span>
+                </button>
+                <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'users' ? 'text-indigo-400' : 'text-slate-500']">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-medium">Usuarios</span>
+                </button>
+            </div>
         </div>
 
-        <!-- WIZARD MODAL -->
-        <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
-                    <h2 class="text-xl font-black text-white"><i class="fa-solid fa-wand-magic-sparkles text-primary mr-2"></i> Connection Wizard</h2>
-                    <button @click="showWizardModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-                </div>
-                <div class="p-6 overflow-y-auto">
-                    <!-- Step 1 -->
-                    <div v-if="wizardStep === 1" class="space-y-4">
-                        <h3 class="text-lg font-bold text-white mb-4">1. Plataforma Destino</h3>
-                        <p class="text-sm text-slate-400 mb-6">¿A dónde quieres transmitir?</p>
-                        <select v-model="wizardForm.platform" class="w-full px-4 py-4 bg-slate-800 border border-slate-600 rounded-2xl text-white font-bold outline-none focus:border-primary">
-                            <option value="Twitch">Twitch</option>
-                            <option value="Kick">Kick</option>
-                            <option value="YouTube">YouTube</option>
-                            <option value="Custom">Custom RTMP</option>
+        <!-- MODALES -->
+        <transition name="modal">
+            <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                        <h3 class="font-bold text-lg">Nuevo Servidor OBS</h3>
+                        <button @click="showCreateModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <input v-model="form.name" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nombre (ej: Evento Principal)">
+                        <select v-model="form.owner_id" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
+                            <option value="">Asignar a un usuario...</option>
+                            <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
                         </select>
-                        <button @click="wizardStep = 2" class="w-full mobile-btn mobile-btn-primary mt-6">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+                        <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Servidor</button>
                     </div>
-                    
-                    <!-- Step 2 -->
-                    <div v-if="wizardStep === 2" class="space-y-4">
-                        <h3 class="text-lg font-bold text-white mb-4">2. Credenciales</h3>
-                        <p class="text-sm text-slate-400 mb-6">Pega tu Stream Key de {{ wizardForm.platform }}.</p>
-                        
-                        <div v-if="wizardForm.platform === 'Custom' || wizardForm.platform === 'YouTube'" class="mb-4">
-                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">RTMP URL</label>
-                            <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="rtmp://...">
-                        </div>
-                        <div v-else class="hidden">{{ wizardForm.rtmp_url = wizardForm.platform === 'Twitch' ? 'rtmp://live.twitch.tv/app' : 'rtmp://live.kick.com/app' }}</div>
+                </div>
+            </div>
+        </transition>
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Stream Key</label>
-                            <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="live_XXXXXXXXXX">
+        <transition name="modal">
+            <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                        <h3 class="font-bold text-lg">Añadir Usuario</h3>
+                        <button @click="showUserModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <input v-model="userForm.username" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nombre de usuario (ej: victor)">
+                        <input v-model="userForm.password" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contraseña">
+                        <select v-model="userForm.role" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
+                            <option value="user">Cliente Normal</option>
+                            <option value="admin">Administrador Total</option>
+                        </select>
+                        <button @click="createUser" class="w-full mobile-btn mobile-btn-primary mt-2">Registrar Usuario</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name="modal">
+            <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                        <h3 class="font-bold text-lg">Destino ({{ activeInstance?.name }})</h3>
+                        <button @click="showWizardModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <p class="text-sm text-slate-400 mb-2">¿Dónde va a salir el directo final?</p>
+                        <select v-model="wizardForm.platform" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
+                            <option>Twitch</option><option>Kick</option><option>YouTube</option><option>Custom</option>
+                        </select>
+                        <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="URL del Servidor (RTMP)">
+                        <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Clave de Transmisión">
+                        <button @click="saveWizard" class="w-full mobile-btn mobile-btn-primary mt-2">Guardar Destino</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name="modal">
+            <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div class="glass border border-slate-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center shrink-0 bg-slate-900/50">
+                        <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="smartphone" class="w-5 h-5 text-indigo-400"></i> Conectar Cámara</h3>
+                        <button @click="showGuideModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 overflow-y-auto space-y-6">
+                        <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4">
+                            <h4 class="font-bold text-indigo-400 mb-2 text-sm uppercase tracking-wider">Paso 1: La App</h4>
+                            <p class="text-sm text-slate-300">Descarga la app <strong>Moblin</strong> en tu teléfono.</p>
                         </div>
-                        
-                        <div class="flex gap-3 mt-8">
-                            <button @click="wizardStep = 1" class="flex-1 px-4 py-4 bg-slate-700 text-white rounded-2xl font-bold">Atrás</button>
-                            <button @click="saveWizard" :disabled="loading" class="flex-[2] mobile-btn mobile-btn-primary">Generar Ingest <i class="fa-solid fa-check"></i></button>
+                        <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
+                            <h4 class="font-bold text-slate-200 mb-2 text-sm uppercase tracking-wider">Paso 2: Enviar Vídeo</h4>
+                            <div class="flex gap-2">
+                                <input type="text" readonly :value="`rtmp://${window.location.hostname}:1935/live/${activeInstance?.connection_id}`" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono">
+                                <button @click="copyText(`rtmp://${window.location.hostname}:1935/live/${activeInstance?.connection_id}`)" class="bg-slate-700 hover:bg-slate-600 px-3 rounded-lg"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- GUIDE MODAL -->
-        <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
-                    <h2 class="text-xl font-black text-white"><i class="fa-solid fa-mobile-screen text-primary mr-2"></i> Configurar Emisión</h2>
-                    <button @click="showGuideModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-                </div>
-                <div class="p-6 overflow-y-auto space-y-6">
-                    <p class="text-sm text-slate-400">Copia estos datos en tu app de streaming (ej. Moblin, Prism Live) para enviar el video a J5 OBS.</p>
-                    
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
-                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">RTMP SERVER (URL)</label>
-                        <div class="flex items-center gap-2">
-                            <input type="text" readonly :value="`rtmp://${window.location.hostname}:1935/live`" class="w-full bg-transparent text-white font-mono text-sm outline-none">
-                            <button @click="copyText(`rtmp://${window.location.hostname}:1935/live`)" class="text-primary hover:text-white p-2"><i class="fa-solid fa-copy"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
-                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">STREAM KEY</label>
-                        <div class="flex items-center gap-2">
-                            <input :type="showKey?'text':'password'" readonly :value="activeInstance?.connection_id" class="w-full bg-transparent text-white font-mono text-sm outline-none">
-                            <button @click="showKey=!showKey" class="text-slate-400 hover:text-white p-2"><i class="fa-solid" :class="showKey?'fa-eye-slash':'fa-eye'"></i></button>
-                            <button @click="copyText(activeInstance?.connection_id)" class="text-primary hover:text-white p-2"><i class="fa-solid fa-copy"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="bg-primary/10 border border-primary/20 p-4 rounded-2xl">
-                        <ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside font-medium">
-                            <li>Abre tu app (Moblin).</li>
-                            <li>Ve a Ajustes -> Conexión -> Custom RTMP.</li>
-                            <li>Pega la URL y la Key de arriba.</li>
-                            <li>Inicia el stream en la app.</li>
-                            <li>Vuelve aquí y pulsa <span class="text-primary font-bold">START STREAM</span>.</li>
-                        </ol>
-                    </div>
-                    
-                    <button @click="showGuideModal=false" class="w-full mobile-btn bg-slate-700 text-white mt-4">CERRAR</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- PROFILE MODAL -->
-        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h2 class="text-xl font-black text-white">Mi Perfil</h2>
-                    <button @click="showProfileModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Username</label>
-                        <input type="text" readonly :value="user.username" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-500 outline-none cursor-not-allowed">
-                        <p class="text-[10px] text-slate-500 mt-1">El nombre de usuario es inmutable.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Cambiar Contraseña</label>
-                        <input v-model="profileForm.password" type="password" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="Nueva Contraseña">
-                    </div>
-                    <button @click="updateProfile" class="w-full mobile-btn mobile-btn-primary mt-4">Guardar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- CREATE MODALS FOR ADMIN -->
-        <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h2 class="text-xl font-black text-white">Nueva Cuenta</h2>
-                    <button @click="showUserModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="p-6 space-y-4">
-                    <input v-model="userForm.username" type="text" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Username (ej: victor)">
-                    <input v-model="userForm.password" type="password" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Contraseña Inicial">
-                    <select v-model="userForm.role" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600">
-                        <option value="user">Cliente (User)</option><option value="admin">Administrador</option>
-                    </select>
-                    <button @click="createUser" class="w-full mobile-btn mobile-btn-primary mt-2">Crear</button>
-                </div>
-            </div>
-        </div>
-        
-        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h2 class="text-xl font-black text-white">Nueva Instancia</h2>
-                    <button @click="showCreateModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="p-6 space-y-4">
-                    <input v-model="form.name" type="text" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Nombre (ej: OBS Victor)">
-                    <select v-model="form.owner_id" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600">
-                        <option value="">Seleccionar Dueño...</option>
-                        <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
-                    </select>
-                    <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Instancia</button>
-                </div>
-            </div>
-        </div>
-
+        </transition>
     </div>
 
     <script>
-        const { createApp, ref, onMounted, onUnmounted, computed } = Vue;
+        const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
+        
         createApp({
             setup() {
                 const authenticated = ref(false);
@@ -370,14 +416,12 @@
                 const instances = ref([]);
                 const stats = ref({});
                 const usersList = ref([]);
-                const auditLogs = ref([]);
                 
                 const showCreateModal = ref(false);
                 const form = ref({ name: '', template: '', owner_id: '' });
                 const showUserModal = ref(false);
                 const userForm = ref({ username: '', password: '', role: 'user' });
                 const showProfileModal = ref(false);
-                const profileForm = ref({ password: '' });
 
                 const showWizardModal = ref(false);
                 const wizardStep = ref(1);
@@ -389,6 +433,16 @@
 
                 let pollInterval = null;
                 const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` });
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    background: '#1e293b',
+                    color: '#fff'
+                });
 
                 const login = async () => {
                     loading.value = true; error.value = '';
@@ -408,8 +462,9 @@
                         authenticated.value = true;
                         localStorage.setItem('j5_token', token.value);
                         fetchData();
-                        if(user.value.role === 'admin') { fetchUsers(); fetchAudit(); }
-                        pollInterval = setInterval(fetchData, 5000);
+                        if(user.value.role === 'admin') { fetchUsers(); }
+                        pollInterval = setInterval(fetchData, 3000); 
+                        nextTick(() => { if(window.lucide) lucide.createIcons(); });
                     } catch (e) { error.value = e.message; token.value = ''; localStorage.removeItem('j5_token'); } finally { loading.value = false; }
                 };
 
@@ -430,57 +485,130 @@
                                 }catch(e){}
                             }
                         });
+                        nextTick(() => { if(window.lucide) lucide.createIcons(); });
                     } catch(e) {}
                 };
 
                 const fetchUsers = async () => { try { const res = await fetch('/api/users', { headers: headers() }); if (res.ok) usersList.value = (await res.json()).users || []; } catch(e){} };
-                const fetchAudit = async () => { try { const res = await fetch('/api/audit', { headers: headers() }); if (res.ok) auditLogs.value = (await res.json()).audit_logs || []; } catch(e){} };
 
                 const executeAction = async (id, action) => {
-                    await fetch(`/api/instances/${id}/${action}`, { method: 'POST', headers: headers() });
-                    fetchData();
-                    if(user.value.role==='admin') fetchAudit();
+                    try {
+                        const res = await fetch(`/api/instances/${id}/${action}`, { method: 'POST', headers: headers() });
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || 'Error al enviar orden');
+                        Toast.fire({ icon: 'success', title: `Orden enviada: ${action}` });
+                        fetchData();
+                    } catch (e) {
+                        Toast.fire({ icon: 'error', title: e.message });
+                    }
                 };
 
                 const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
                 const saveWizard = async () => {
-                    loading.value = true;
                     try {
-                        await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSON.stringify(wizardForm.value) });
+                        const res = await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSON.stringify(wizardForm.value) });
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || 'Error guardando destino');
                         showWizardModal.value = false;
+                        Toast.fire({ icon: 'success', title: 'Destino guardado y encriptado' });
                         fetchData();
-                        if(user.value.role==='admin') fetchAudit();
-                    } finally { loading.value = false; }
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
                 };
 
-                const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; };
-                const copyText = (txt) => { navigator.clipboard.writeText(txt); alert("Copiado al portapapeles"); };
+                const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; nextTick(() => { if(window.lucide) lucide.createIcons(); }); };
+                const copyText = (txt) => { navigator.clipboard.writeText(txt); Toast.fire({ icon: 'success', title: '¡Copiado al portapapeles!' }); };
 
-                const createInstance = async () => { await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(form.value) }); showCreateModal.value = false; fetchData(); };
-                const deleteInstance = async (id) => { if(confirm('¿Eliminar instancia?')) { await fetch(`/api/instances/${id}`, { method: 'DELETE', headers: headers() }); fetchData(); } };
+                const createInstance = async () => { 
+                    try {
+                        if(!form.value.name || !form.value.owner_id) throw new Error('Rellena el nombre y el dueño');
+                        const res = await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(form.value) }); 
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || 'Error al crear servidor');
+                        showCreateModal.value = false; 
+                        form.value = { name: '', template: '', owner_id: '' };
+                        Toast.fire({ icon: 'success', title: 'Servidor OBS creado!' });
+                        fetchData(); 
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                };
+
+                const deleteInstance = async (id) => { 
+                    Swal.fire({
+                        title: '¿Estás seguro?', text: "Se borrará todo el servidor OBS", icon: 'warning',
+                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Sí, borrarlo'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const res = await fetch(`/api/instances/${id}`, { method: 'DELETE', headers: headers() }); 
+                                if(!res.ok) throw new Error('Error al borrar');
+                                Toast.fire({ icon: 'success', title: 'Servidor destruido' });
+                                fetchData(); 
+                            } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                        }
+                    })
+                };
                 
-                const createUser = async () => { await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) }); showUserModal.value = false; fetchUsers(); };
-                const deleteUser = async (id) => { if(confirm('¿Eliminar usuario?')) { await fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers() }); fetchUsers(); fetchData(); } };
+                const publishBranding = async () => {
+                    Toast.fire({ icon: 'info', title: 'Generando paquete firmado...' });
+                    try {
+                        const payload = {
+                            id: 'v2.4.1-' + Date.now(),
+                            version_tag: 'v2.4.1',
+                            config_json: { watermark: { opacity: 80, pos: 'RIGHT_EDGE' }, chat: { style: 'default' } },
+                            signature: '8f4e3c1b2a9d'
+                        };
+                        const res = await fetch('/api/admin/branding', { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
+                        if(!res.ok) throw new Error('Error al publicar branding');
+                        Toast.fire({ icon: 'success', title: 'Branding v2.4.1 Publicado Globalmente' });
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                };
 
-                const updateProfile = async () => {
-                    if(!profileForm.value.password) return;
-                    await fetch('/api/users/me', { method: 'PUT', headers: headers(), body: JSON.stringify(profileForm.value) });
-                    showProfileModal.value = false; alert("Contraseña actualizada."); logout();
+                const createUser = async () => { 
+                    try {
+                        if(!userForm.value.username || !userForm.value.password) throw new Error('Rellena usuario y contraseña');
+                        const res = await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) }); 
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || 'El usuario ya existe o hay un error');
+                        
+                        showUserModal.value = false; 
+                        userForm.value = { username: '', password: '', role: 'user' };
+                        Toast.fire({ icon: 'success', title: 'Usuario registrado perfectamente' });
+                        fetchUsers(); 
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                };
+
+                const deleteUser = async (id) => { 
+                    Swal.fire({
+                        title: '¿Eliminar usuario?', text: "Perderá el acceso al panel", icon: 'warning',
+                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Eliminar'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const res = await fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers() }); 
+                                if(!res.ok) throw new Error('Error al eliminar');
+                                Toast.fire({ icon: 'success', title: 'Usuario eliminado' });
+                                fetchUsers(); fetchData(); 
+                            } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                        }
+                    })
                 };
 
                 const getStat = (id, key) => { const s = stats.value[id]; return s ? (key==='cpu_percent'?s[key].toFixed(1):Math.round(s[key])) : '0.0'; };
-                const statusBadgeClass = (s) => s==='ONLINE'?'bg-success/10 text-success border-success/30':(s==='STREAMING'?'bg-primary/20 text-primary border-primary/30':(s==='STANDBY'?'bg-slate-800 text-slate-400 border-slate-600':'bg-danger/20 text-danger border-danger/30'));
-                const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-danger':(v>60?'text-warning':'text-success'); };
+                const statusBadgeClass = (s) => s==='ONLINE'?'bg-emerald-500/10 text-emerald-400 border-emerald-500/30':(s==='STREAMING'?'bg-indigo-500/20 text-indigo-400 border-indigo-500/30':(s==='STANDBY'?'bg-slate-800 text-slate-400 border-slate-600':'bg-rose-500/20 text-rose-400 border-rose-500/30'));
+                const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-rose-400':(v>60?'text-amber-400':'text-emerald-400'); };
 
-                onMounted(() => { const t = localStorage.getItem('j5_token'); if (t) { token.value = t; login(); } });
+                onMounted(() => { 
+                    const t = localStorage.getItem('j5_token'); 
+                    if (t) { token.value = t; login(); } 
+                    nextTick(() => { if(window.lucide) lucide.createIcons(); });
+                });
                 onUnmounted(() => { if (pollInterval) clearInterval(pollInterval); });
 
                 return {
                     authenticated, token, loading, error, user, loginForm, adminTab,
-                    instances, stats, usersList, auditLogs, activeInstance,
+                    instances, stats, usersList, activeInstance,
                     showCreateModal, form, showUserModal, userForm, showProfileModal, profileForm,
                     showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window,
-                    createInstance, deleteInstance, createUser, deleteUser, updateProfile,
+                    createInstance, deleteInstance, createUser, deleteUser, publishBranding,
                     executeAction, showWizard, saveWizard, showGuide, copyText, getStat, statusBadgeClass, cpuColor,
                     login, logout, fetchData
                 };

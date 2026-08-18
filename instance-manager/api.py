@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 import hmac
 import json
@@ -297,7 +297,7 @@ def create_api_app(manager):
     async def update_me(request):
         data = await request.json()
         updates = {}
-                if data.get("password"):
+        if data.get("password"):
             import hashlib
             updates["password_hash"] = hashlib.sha256(data["password"].encode()).hexdigest()
         if updates:
@@ -307,6 +307,51 @@ def create_api_app(manager):
                 return web.json_response({"error": str(e)}, status=400)
         return web.json_response({"ok": True})
 
+
+    # --- Global Branding ---
+    async def get_active_branding(request):
+        try:
+            active = await manager.db.get_active_branding()
+            if not active:
+                return web.json_response({"error": "No active branding"}, status=404)
+            import json
+            if isinstance(active["config_json"], str):
+                active["config_json"] = json.loads(active["config_json"])
+            # Format datetime
+            active["published_at"] = active["published_at"].isoformat()
+            return web.json_response(active)
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
+
+    @auth
+    @require_admin
+    async def publish_branding(request):
+        data = await request.json()
+        version_id = data.get("id")
+        version_tag = data.get("version_tag")
+        config_json = data.get("config_json")
+        signature = data.get("signature", "")
+        
+        if not all([version_id, version_tag, config_json]):
+            return web.json_response({"error": "Missing required fields"}, status=400)
+            
+        try:
+            await manager.db.publish_branding(version_id, version_tag, config_json, signature)
+            await manager.db.log_audit_event(request["user"]["id"], "BRANDING_PUBLISHED", version_tag)
+            return web.json_response({"ok": True})
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
+
+    @auth
+    @require_admin
+    async def get_all_branding_versions(request):
+        try:
+            versions = await manager.db.get_all_branding_versions()
+            for v in versions:
+                v["published_at"] = v["published_at"].isoformat()
+            return web.json_response({"versions": versions})
+        except Exception as e:
+            return web.json_response({"error": str(e)}, status=500)
     app.router.add_post("/api/auth/login", login)
     app.router.add_get("/api/status", manager_status)
     app.router.add_get("/api/users", list_users)
@@ -328,6 +373,10 @@ def create_api_app(manager):
     app.router.add_patch("/api/instances/{id}", update_config)
     app.router.add_get("/api/templates", list_templates)
 
+    app.router.add_get("/api/branding/active", get_active_branding)
+    app.router.add_post("/api/admin/branding", publish_branding)
+    app.router.add_get("/api/admin/branding/versions", get_all_branding_versions)
+
     panel = os.path.join(manager.base_dir, "panel", "index.html")
     if os.path.exists(panel):
         async def _panel(r): return web.FileResponse(panel)
@@ -335,3 +384,4 @@ def create_api_app(manager):
         app.router.add_get("/panel", _panel)
 
     return app
+

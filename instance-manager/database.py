@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import json
 import asyncio
@@ -92,6 +92,23 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     target VARCHAR(255),
     metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS branding_versions (
+    id VARCHAR(255) PRIMARY KEY,
+    version_tag VARCHAR(50) NOT NULL,
+    config_json JSONB NOT NULL,
+    signature VARCHAR(255),
+    is_active BOOLEAN DEFAULT false,
+    published_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS branding_assets (
+    id VARCHAR(255) PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    checksum VARCHAR(255),
+    uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 """
 
@@ -317,3 +334,40 @@ class Database:
         async with self.pool.acquire() as conn:
             await conn.execute("DELETE FROM instances WHERE instance_id = $1", instance_id)
 
+
+    # --- Global Branding ---
+    async def get_active_branding(self):
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT * FROM branding_versions WHERE is_active = true ORDER BY published_at DESC LIMIT 1")
+            return dict(row) if row else None
+
+    async def publish_branding(self, version_id, version_tag, config_json, signature):
+        now = datetime.now(timezone.utc)
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                # Set all existing to inactive
+                await conn.execute("UPDATE branding_versions SET is_active = false")
+                # Insert the new active one
+                import json
+                await conn.execute(
+                    "INSERT INTO branding_versions (id, version_tag, config_json, signature, is_active, published_at) VALUES (, , , , true, )",
+                    version_id, version_tag, json.dumps(config_json), signature, now
+                )
+
+    async def get_all_branding_versions(self):
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("SELECT id, version_tag, signature, is_active, published_at FROM branding_versions ORDER BY published_at DESC")
+            return [dict(r) for r in rows]
+
+    async def save_asset(self, asset_id, filename, url, checksum):
+        now = datetime.now(timezone.utc)
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO branding_assets (id, filename, url, checksum, uploaded_at) VALUES (, , , , )",
+                asset_id, filename, url, checksum, now
+            )
+            
+    async def get_all_assets(self):
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("SELECT * FROM branding_assets ORDER BY uploaded_at DESC")
+            return [dict(r) for r in rows]
