@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+﻿# -*- coding: utf-8 -*-
+import os
+
+HTML_CONTENT = """<!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -389,3 +392,6 @@
     </script>
 </body>
 </html>
+"""
+with open("e:\\GitHub\\J5-OBS\\panel\\index.html", "w", encoding="utf-8") as f:
+    f.write(HTML_CONTENT)

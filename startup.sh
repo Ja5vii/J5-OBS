@@ -2,7 +2,7 @@
 set -e
 
 INSTALL_DIR="/home/container"
-MANAGER_DIR="${INSTALL_DIR}/instance_manager"
+MANAGER_DIR="${INSTALL_DIR}/instance-manager"
 PID_FILE="${INSTALL_DIR}/j5-obs/manager.pid"
 LOG_DIR="${INSTALL_DIR}/j5-obs/logs"
 

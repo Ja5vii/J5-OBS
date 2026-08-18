@@ -8,7 +8,7 @@
   "image": "ghcr.io/ja5vii/obs-multi-instance:latest",
   "startup": "/home/container/startup.sh",
   "script": {
-    "privilegeileged": false,
+    "privileged": false,
     "container": {
       "bash": "bash {{FILE}}",
       "sh": "sh {{FILE}}"

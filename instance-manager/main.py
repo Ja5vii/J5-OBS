@@ -8,17 +8,17 @@ import hashlib
 import aiohttp
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, BASE_DIR)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from instance_manager.config import ManagerConfig
-from instance_manager.database import Database
-from instance_manager.port_manager import PortManager
-from instance_manager.display_manager import DisplayManager
-from instance_manager.process_manager import ProcessManager
-from instance_manager.health_manager import HealthManager
-from instance_manager.recovery_manager import RecoveryManager
-from instance_manager.logger import Logger
-from instance_manager.api import create_api_app
+from config import ManagerConfig
+from database import Database
+from port_manager import PortManager
+from display_manager import DisplayManager
+from process_manager import ProcessManager
+from health_manager import HealthManager
+from recovery_manager import RecoveryManager
+from logger import Logger
+from api import create_api_app
 
 
 class InstanceManager:
@@ -63,7 +63,7 @@ class InstanceManager:
     def _load_templates(self):
         if self._templates is not None:
             return self._templates
-        tdir = os.path.join(self.base_dir, "instance_manager", "templates")
+        tdir = os.path.join(self.base_dir, "instance-manager", "templates")
         self._templates = {}
         if os.path.isdir(tdir):
             for f in os.listdir(tdir):

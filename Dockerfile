@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     obs-studio \
     xvfb \
     alsa-utils \
+    pulseaudio \
     python3 \
     python3-pip \
     python3-venv \
@@ -36,7 +37,7 @@ COPY requirements.txt /home/container/requirements.txt
 RUN pip3 install --no-cache-dir -r /home/container/requirements.txt
 
 COPY install.sh startup.sh shutdown.sh /home/container/
-COPY instance_manager/ /home/container/instance_manager/
+COPY instance-manager/ /home/container/instance-manager/
 COPY panel/ /home/container/panel/
 
 RUN chmod +x /home/container/install.sh \

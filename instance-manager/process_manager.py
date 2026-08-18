@@ -14,6 +14,7 @@ class ProcessManager:
         self.config = config
         self.logger = logger
         self._processes = {}
+        self._pulse_processes = {}
         self._is_unix = sys.platform != "win32"
 
     def initialize(self):
@@ -26,6 +27,46 @@ class ProcessManager:
         base = self._dir(instance_id)
         for d in ("config", "profiles", "scenes", "logs", "cache", "runtime"):
             os.makedirs(os.path.join(base, d), exist_ok=True)
+
+    def _start_pulseaudio(self, instance_id, inst_dir):
+        runtime_dir = os.path.join(inst_dir, "runtime")
+        log_dir = os.path.join(inst_dir, "logs")
+        pa_config = os.path.join(runtime_dir, "pulse.pa")
+        socket_path = os.path.join(runtime_dir, "pulse-socket")
+        pid_file = os.path.join(runtime_dir, "pulse.pid")
+
+        with open(pa_config, "w") as f:
+            f.write(f"load-module module-native-protocol-unix auth-anonymous=1 socket={socket_path}\n")
+            f.write("load-module module-always-sink\n")
+            f.write("load-module module-null-sink sink_name=Virtual_Sink sink_properties=device.description=Virtual_Sink\n")
+            f.write("load-module module-null-sink sink_name=Virtual_Mic sink_properties=device.description=Virtual_Mic\n")
+
+        log_fh = open(os.path.join(log_dir, "pulse.log"), "a")
+        cmd = [
+            "pulseaudio",
+            "--daemonize=false",
+            "--exit-idle-time=-1",
+            "-n",
+            "-F", pa_config,
+            "-p", runtime_dir,
+            f"--pid-file={pid_file}"
+        ]
+        proc = subprocess.Popen(cmd, stdout=log_fh, stderr=log_fh, cwd=inst_dir)
+        self._pulse_processes[instance_id] = {"process": proc, "log_file": log_fh, "socket": socket_path}
+        return socket_path
+
+    def _stop_pulseaudio(self, instance_id):
+        pi = self._pulse_processes.pop(instance_id, None)
+        if pi:
+            proc = pi["process"]
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+            pi["log_file"].close()
+
 
     async def start_instance(self, instance_id):
         inst = await self.manager.db.get_instance(instance_id)
@@ -42,6 +83,9 @@ class ProcessManager:
         self._write_obs_config(instance_id, profile_dir, scene_dir, inst)
         self.manager.display_manager.start_xvfb(instance_id)
         display_env = self.manager.display_manager.get_display_env(instance_id)
+        pulse_socket = None
+        if self._is_unix:
+            pulse_socket = self._start_pulseaudio(instance_id, inst_dir)
         await asyncio.sleep(0.5)
         profile_name = inst.get("profile", "default") or "default"
         obs_cmd = [
@@ -55,6 +99,8 @@ class ProcessManager:
         ]
         env = os.environ.copy()
         env.update(display_env)
+        if pulse_socket:
+            env["PULSE_SERVER"] = f"unix:{pulse_socket}"
         env["OBS_WEBSOCKET_ENABLE"] = "true"
         env["OBS_WEBSOCKET_PORT"] = str(inst["websocket_port"])
         env["OBS_WEBSOCKET_SERVER_PASSWORD"] = inst.get("ws_password", "")
@@ -106,6 +152,8 @@ class ProcessManager:
                         proc.kill()
             proc_info["log_file"].close()
         self.manager.display_manager.stop_xvfb(instance_id)
+        if self._is_unix:
+            self._stop_pulseaudio(instance_id)
         await self.manager.db.update_instance(instance_id, pid=None, status="STANDBY", restart_count=0)
         self.logger.info(f"{instance_id} stopped")
 
@@ -126,6 +174,21 @@ class ProcessManager:
         if not os.path.exists(basic_ini):
             with open(basic_ini, "w") as f:
                 f.write(f"[General]\nName={instance_id}\n[Output]\nFilenameFormatting=%CCYY-%MM-%DD %hh-%mm-%ss\n")
+        
+        rtmp_url = inst_data.get("rtmp_url")
+        rtmp_key = inst_data.get("rtmp_key")
+        if rtmp_url and rtmp_key:
+            service_json = os.path.join(profile_path, "service.json")
+            with open(service_json, "w") as f:
+                json.dump({
+                    "settings": {
+                        "key": rtmp_key,
+                        "server": rtmp_url,
+                        "service": "Custom"
+                    },
+                    "type": "rtmp_custom"
+                }, f)
+
         scene_col_path = os.path.join(scene_dir, f"{scene_collection}.json")
         if not os.path.exists(scene_col_path):
             with open(scene_col_path, "w") as f:
