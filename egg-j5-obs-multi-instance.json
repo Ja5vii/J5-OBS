@@ -1,147 +1,158 @@
 {
-  "meta": {
-    "version": "PTCDV1"
-  },
-  "name": "J5 OBS Multi-Instance",
-  "description": "Multi-instance OBS Studio host for Pterodactyl. Manages N independent OBS instances with isolated configs, displays, WebSocket, and RTMP within a single Game Server.",
-  "author": "J5 Studio",
-  "image": "ghcr.io/ja5vii/obs-multi-instance:latest",
-  "startup": "/home/container/startup.sh",
-  "script": {
-    "privileged": false,
-    "container": {
-      "bash": "bash {{FILE}}",
-      "sh": "sh {{FILE}}"
-    }
-  },
-  "config_files": [],
-  "stop": "SIGTERM",
-  "variables": [
-    {
-      "name": "J5_MANAGER_PORT",
-      "description": "Port for the J5 Instance Manager API",
-      "env_variable": "J5_MANAGER_PORT",
-      "default_value": "8080",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1024|max:65535"
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
     },
-    {
-      "name": "J5_MANAGER_TOKEN",
-      "description": "Authentication token for the J5 Manager API (min 16 chars)",
-      "env_variable": "J5_MANAGER_TOKEN",
-      "default_value": "",
-      "user_viewable": false,
-      "user_editable": true,
-      "rules": "required|string|min:16|max:256"
+    "exported_at": "2023-01-01T00:00:00+00:00",
+    "name": "J5 OBS Multi-Instance",
+    "author": "J5 Studio",
+    "description": "Multi-instance OBS Studio host for Pterodactyl. Manages N independent OBS instances with isolated configs, displays, WebSocket, and RTMP within a single Game Server.",
+    "features": null,
+    "docker_images": {
+        "Ubuntu 22.04 (Base)": "ghcr.io/pterodactyl/yolks:ubuntu_22.04"
     },
-    {
-      "name": "OBS_WEBSOCKET_BASE_PORT",
-      "description": "Base port for OBS WebSocket (first instance uses this port)",
-      "env_variable": "OBS_WEBSOCKET_BASE_PORT",
-      "default_value": "4455",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1024|max:65535"
+    "file_denylist": [],
+    "startup": "/home/container/startup.sh",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"Instance Manager ready\"\r\n}",
+        "logs": "{}",
+        "stop": "^^C"
     },
-    {
-      "name": "OBS_DISPLAY_BASE",
-      "description": "Base Xvfb display number (first instance uses :BASE+1)",
-      "env_variable": "OBS_DISPLAY_BASE",
-      "default_value": "100",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1|max:999"
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\napt-get update -y && apt-get install -y git\ncd /mnt/server\nif [ ! -d .git ]; then\n    git clone ${GIT_ADDRESS} .\nelse\n    git pull\nfi\nchmod +x install.sh\n./install.sh",
+            "container": "ubuntu:22.04",
+            "entrypoint": "bash"
+        }
     },
-    {
-      "name": "OBS_MAX_INSTANCES",
-      "description": "Maximum number of OBS instances allowed",
-      "env_variable": "OBS_MAX_INSTANCES",
-      "default_value": "10",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1|max:50"
-    },
-    {
-      "name": "AUTO_RESTART",
-      "description": "Enable automatic restart on OBS crash (true/false)",
-      "env_variable": "AUTO_RESTART",
-      "default_value": "true",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|boolean"
-    },
-    {
-      "name": "MAX_RESTARTS",
-      "description": "Maximum auto-restart attempts per instance before giving up",
-      "env_variable": "MAX_RESTARTS",
-      "default_value": "3",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1|max:10"
-    },
-    {
-      "name": "RESTART_DELAY",
-      "description": "Delay in seconds between restart attempts",
-      "env_variable": "RESTART_DELAY",
-      "default_value": "10",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer|min:1|max:300"
-    },
-    {
-      "name": "AUTO_START_INSTANCES",
-      "description": "Automatically start all instances on server boot (true/false)",
-      "env_variable": "AUTO_START_INSTANCES",
-      "default_value": "false",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|boolean"
-    },
-    {
-      "name": "Database Host",
-      "description": "PostgreSQL Host address",
-      "env_variable": "J5_DB_HOST",
-      "default_value": "127.0.0.1",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|string"
-    },
-    {
-      "name": "Database Port",
-      "description": "PostgreSQL Port",
-      "env_variable": "J5_DB_PORT",
-      "default_value": "5432",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|integer"
-    },
-    {
-      "name": "Database User",
-      "description": "PostgreSQL Username",
-      "env_variable": "J5_DB_USER",
-      "default_value": "postgres",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|string"
-    },
-    {
-      "name": "Database Password",
-      "description": "PostgreSQL Password",
-      "env_variable": "J5_DB_PASS",
-      "default_value": "",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|string"
-    },
-    {
-      "name": "Database Name",
-      "description": "PostgreSQL Database Name",
-      "env_variable": "J5_DB_NAME",
-      "default_value": "j5obs",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|string"
-    }
-  ]
+    "variables": [
+        {
+            "name": "J5_MANAGER_PORT",
+            "description": "Port for the J5 Instance Manager API",
+            "env_variable": "J5_MANAGER_PORT",
+            "default_value": "8080",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1024|max:65535"
+        },
+        {
+            "name": "J5_MANAGER_TOKEN",
+            "description": "Authentication token for the J5 Manager API (min 16 chars)",
+            "env_variable": "J5_MANAGER_TOKEN",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": true,
+            "rules": "required|string|min:16|max:256"
+        },
+        {
+            "name": "OBS_WEBSOCKET_BASE_PORT",
+            "description": "Base port for OBS WebSocket (first instance uses this port)",
+            "env_variable": "OBS_WEBSOCKET_BASE_PORT",
+            "default_value": "4455",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1024|max:65535"
+        },
+        {
+            "name": "OBS_DISPLAY_BASE",
+            "description": "Base Xvfb display number (first instance uses :BASE+1)",
+            "env_variable": "OBS_DISPLAY_BASE",
+            "default_value": "100",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:999"
+        },
+        {
+            "name": "OBS_MAX_INSTANCES",
+            "description": "Maximum number of OBS instances allowed",
+            "env_variable": "OBS_MAX_INSTANCES",
+            "default_value": "10",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:50"
+        },
+        {
+            "name": "AUTO_RESTART",
+            "description": "Enable automatic restart on OBS crash (true/false)",
+            "env_variable": "AUTO_RESTART",
+            "default_value": "true",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean"
+        },
+        {
+            "name": "MAX_RESTARTS",
+            "description": "Maximum auto-restart attempts per instance before giving up",
+            "env_variable": "MAX_RESTARTS",
+            "default_value": "3",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:10"
+        },
+        {
+            "name": "RESTART_DELAY",
+            "description": "Delay in seconds between restart attempts",
+            "env_variable": "RESTART_DELAY",
+            "default_value": "10",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:300"
+        },
+        {
+            "name": "AUTO_START_INSTANCES",
+            "description": "Automatically start all instances on server boot (true/false)",
+            "env_variable": "AUTO_START_INSTANCES",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean"
+        },
+        {
+            "name": "Database Host",
+            "description": "PostgreSQL Host address",
+            "env_variable": "J5_DB_HOST",
+            "default_value": "127.0.0.1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string"
+        },
+        {
+            "name": "Database Port",
+            "description": "PostgreSQL Port",
+            "env_variable": "J5_DB_PORT",
+            "default_value": "5432",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer"
+        },
+        {
+            "name": "Database User",
+            "description": "PostgreSQL Username",
+            "env_variable": "J5_DB_USER",
+            "default_value": "postgres",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string"
+        },
+        {
+            "name": "Database Password",
+            "description": "PostgreSQL Password",
+            "env_variable": "J5_DB_PASS",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string"
+        },
+        {
+            "name": "Database Name",
+            "description": "PostgreSQL Database Name",
+            "env_variable": "J5_DB_NAME",
+            "default_value": "j5obs",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string"
+        }
+    ]
 }
