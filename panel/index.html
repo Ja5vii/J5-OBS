@@ -53,9 +53,14 @@
                     <div>
                         <input v-model="loginForm.username" type="text" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Usuario">
                     </div>
-                    <div>
-                        <input v-model="loginForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contrasena">
+                    
+                    <div class="relative">
+                        <input v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contrasena">
+                        <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
+                            <i :data-lucide="showLoginPassword ? 'eye-off' : 'eye'" class="w-5 h-5"></i>
+                        </button>
                     </div>
+
                     <button type="submit" :disabled="loading" class="w-full mobile-btn mobile-btn-primary mt-2">
                         <span v-if="!loading">Entrar</span>
                         <span v-else>Cargando...</span>
@@ -98,11 +103,22 @@
                     </button>
                 </nav>
 
-                <div class="p-4 border-t border-slate-800">
-                    <button @click="logout" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-colors">
-                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesion
+                
+                <div class="p-4 border-t border-slate-800 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                        {{ user?.username?.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-sm font-bold truncate">{{ user?.username }}</p>
+                        <p class="text-xs text-slate-500 truncate capitalize">{{ user?.role }}</p>
+                    </div>
+                </div>
+                <div class="p-4 pt-0">
+                    <button @click="logout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesion
                     </button>
                 </div>
+
             </div>
 
             <!-- MAIN CONTENT -->
@@ -349,7 +365,14 @@
                     </div>
                     <form @submit.prevent="createUser" class="space-y-4">
                         <input v-model="userForm.username" type="text" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Usuario">
-                        <input v-model="userForm.password" type="password" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contrasena">
+                        
+                        <div class="relative">
+                            <input v-model="userForm.password" :type="showCreatePassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contrasena">
+                            <button type="button" @click="showCreatePassword = !showCreatePassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
+                                <i :data-lucide="showCreatePassword ? 'eye-off' : 'eye'" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
                         <select v-model="userForm.role" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
                             <option value="user">Cliente Normal</option>
                             <option value="admin">Administrador</option>
@@ -420,6 +443,7 @@
         const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
 
         createApp({
+            updated() { this.$nextTick(() => { if(window.lucide) lucide.createIcons(); }); },
             setup() {
                 const authenticated = ref(false);
                 const token = ref('');
@@ -444,6 +468,8 @@
                 const wizardForm = ref({ platform: 'Twitch', rtmp_url: '', rtmp_key: '' });
                 const showGuideModal = ref(false);
                 const showKey = ref(false);
+                const showLoginPassword = ref(false);
+                const showCreatePassword = ref(false);
                 
                 const brandingConfig = ref({ watermark: { opacity: 80, pos: 'RIGHT_EDGE' }, chat: { style: 'default' } });
                 const logoFile = ref(null);
@@ -682,6 +708,7 @@
                 onUnmounted(() => { if (pollInterval) clearInterval(pollInterval); });
 
                 return {
+                    showLoginPassword, showCreatePassword,
                     authenticated, token, loading, error, user, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
                     showCreateModal, form, showUserModal, userForm,
