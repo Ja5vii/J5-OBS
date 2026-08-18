@@ -57,7 +57,7 @@
                     <div class="relative">
                         <input v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contrasena">
                         <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
-                            <i :data-lucide="showLoginPassword ? 'eye' : 'eye-off'" class="w-5 h-5"></i>
+                            <i v-if="showLoginPassword" data-lucide="eye" class="w-5 h-5"></i><i v-else data-lucide="eye-off" class="w-5 h-5"></i>
                         </button>
                     </div>
 
@@ -369,7 +369,7 @@
                         <div class="relative">
                             <input v-model="userForm.password" :type="showCreatePassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contrasena">
                             <button type="button" @click="showCreatePassword = !showCreatePassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
-                                <i :data-lucide="showCreatePassword ? 'eye' : 'eye-off'" class="w-5 h-5"></i>
+                                <i v-if="showCreatePassword" data-lucide="eye" class="w-5 h-5"></i><i v-else data-lucide="eye-off" class="w-5 h-5"></i>
                             </button>
                         </div>
 
@@ -428,7 +428,7 @@
                                 <code class="flex-1 bg-black/50 p-2 rounded text-rose-400 text-sm">
                                     {{ showKey ? activeInstance.stream_key : '••••••••••••••••••••' }}
                                 </code>
-                                <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i :data-lucide="showKey ? 'eye' : 'eye-off'" class="w-4 h-4"></i></button>
+                                <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i v-if="showKey" data-lucide="eye" class="w-4 h-4"></i><i v-else data-lucide="eye-off" class="w-4 h-4"></i></button>
                                 <button @click="copyText(activeInstance.stream_key)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
                             </div>
                         </div>
