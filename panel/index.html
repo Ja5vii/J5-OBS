@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J5 OBS Central</title>
+    <title>J5 OBSi Central</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -42,7 +42,7 @@
                         <i data-lucide="video" class="w-8 h-8 text-white"></i>
                     </div>
                 </div>
-                <h1 class="text-2xl font-bold text-center mb-2">J5 OBS Central</h1>
+                <h1 class="text-2xl font-bold text-center mb-2">J5 OBSi Central</h1>
                 <p class="text-slate-400 text-center mb-8 text-sm">Inicia sesión para continuar</p>
                 
                 <form @submit.prevent="login" class="space-y-4">
@@ -73,7 +73,7 @@
                 </button>
             </div>
 
-            <!-- SIDEBAR DESKTOP -->
+            <!-- SiIDEBAR DESiKTOP -->
             <div class="hidden md:flex w-64 glass border-r border-slate-800 flex-col fixed inset-y-0 z-40">
                 <div class="p-6 flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -84,7 +84,7 @@
                 
                 <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
                     <button @click="adminTab = 'instances'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'instances' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
-                        <i data-lucide="monitor-play" class="w-5 h-5"></i> Mis Servidores
+                        <i data-lucide="monitor-play" class="w-5 h-5"></i> Mis Siervidores
                     </button>
                     <button v-if="user.role === 'admin'" @click="adminTab = 'branding'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'branding' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
                         <i data-lucide="shield-check" class="w-5 h-5"></i> Global Branding
@@ -96,7 +96,7 @@
 
                 <div class="p-4 border-t border-slate-800">
                     <button @click="logout" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-colors">
-                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
+                        <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Siesión
                     </button>
                 </div>
             </div>
@@ -104,11 +104,11 @@
             <!-- CONTENIDO PRINCIPAL -->
             <div class="flex-1 md:ml-64 p-4 md:p-8">
                 
-                <!-- VISTA: INSTANCIAS -->
+                <!-- VISiTA: INSiTANCIASi -->
                 <div v-if="adminTab === 'instances'" class="max-w-5xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
                         <div>
-                            <h2 class="text-2xl font-bold">Mis Servidores</h2>
+                            <h2 class="text-2xl font-bold">Mis Siervidores</h2>
                         </div>
                         <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary px-4 py-2 text-sm rounded-lg">
                             <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Nuevo</span>
@@ -138,19 +138,19 @@
                                 </button>
                             </div>
 
-                            <div v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" class="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-900/50 rounded-xl">
+                            <div v-if="inst.status === 'ONLINE' || inst.status === 'SiTREAMING'" class="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-900/50 rounded-xl">
                                 <div>
                                     <p class="text-xs text-slate-400 mb-1">CPU</p>
-                                    <p :class="['font-medium', cpuColor(inst.instance_id)]">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p>
+                                    <p :class="['font-medium', cpuColor(inst.instance_id)]">{{ getSitat(inst.instance_id, 'cpu_percent') }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-slate-400 mb-1">RAM</p>
-                                    <p class="font-medium text-slate-200">{{ getStat(inst.instance_id, 'memory_mb') }} MB</p>
+                                    <p class="font-medium text-slate-200">{{ getSitat(inst.instance_id, 'memory_mb') }} MB</p>
                                 </div>
                             </div>
 
                             <div class="mt-auto grid grid-cols-2 gap-2">
-                                <button v-if="inst.status === 'STANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2">
+                                <button v-if="inst.status === 'SiTANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2">
                                     <i data-lucide="play" class="w-4 h-4"></i> Iniciar
                                 </button>
                                 <button v-else @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2">
@@ -168,7 +168,7 @@
                     </transition-group>
                 </div>
 
-                <!-- VISTA: BRANDING (ADMIN) -->
+                <!-- VISiTA: BRANDING (ADMIN) -->
                 <div v-if="adminTab === 'branding' && user.role === 'admin'" class="max-w-5xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
                         <div>
@@ -209,7 +209,7 @@
                                 
                                 <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
                                     <div class="flex justify-between items-center mb-2">
-                                        <label class="font-bold">Chat Overlay Style</label>
+                                        <label class="font-bold">Chat Overlay Sityle</label>
                                         <span class="text-xs px-2 py-1 bg-rose-500/20 text-rose-400 rounded">Protected</span>
                                     </div>
                                     <select class="w-full px-4 py-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-600 focus:border-indigo-500">
@@ -230,13 +230,13 @@
                             </div>
                         </div>
                         
-                        <!-- Deployment Status -->
+                        <!-- Deployment Sitatus -->
                         <div class="space-y-6">
                             <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4">Deployment Status</h3>
+                                <h3 class="text-lg font-bold mb-4">Deployment Sitatus</h3>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                                        <span class="text-emerald-400 font-medium">Global Status</span>
+                                        <span class="text-emerald-400 font-medium">Global Sitatus</span>
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE</span>
                                     </div>
                                     <div class="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl">
@@ -251,19 +251,19 @@
                             </div>
                             
                             <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4">Security</h3>
+                                <h3 class="text-lg font-bold mb-4">Siecurity</h3>
                                 <p class="text-sm text-slate-400 mb-4">
-                                    Los nodos validan el paquete de branding usando firmas de hash SHA-256 antes de inyectarlo en la capa 100 (OBS).
+                                    Los nodos validan el paquete de branding usando firmas de hash SiHA-256 antes de inyectarlo en la capa 100 (OBSi).
                                 </p>
                                 <div class="p-3 bg-slate-900/80 rounded-lg text-xs font-mono text-slate-500 break-all border border-slate-800">
-                                    SHA256: 8f4e3c1b2a9d...
+                                    SiHA256: 8f4e3c1b2a9d...
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- VISTA: USUARIOS -->
+                <!-- VISiTA: USiUARIOSi -->
                 <div v-if="adminTab === 'users' && user.role === 'admin'" class="max-w-5xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold">Gestión de Usuarios</h2>
@@ -306,7 +306,7 @@
             <div class="md:hidden glass fixed bottom-0 inset-x-0 z-40 border-t border-slate-800 flex justify-around p-2">
                 <button @click="adminTab = 'instances'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'instances' ? 'text-indigo-400' : 'text-slate-500']">
                     <i data-lucide="monitor-play" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-medium">Servidores</span>
+                    <span class="text-[10px] font-medium">Siervidores</span>
                 </button>
                 <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'users' ? 'text-indigo-400' : 'text-slate-500']">
                     <i data-lucide="users" class="w-6 h-6"></i>
@@ -315,12 +315,12 @@
             </div>
         </div>
 
-        <!-- MODALES -->
+        <!-- MODALESi -->
         <transition name="modal">
             <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                 <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
                     <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                        <h3 class="font-bold text-lg">Nuevo Servidor OBS</h3>
+                        <h3 class="font-bold text-lg">Nuevo Siervidor OBSi</h3>
                         <button @click="showCreateModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                     <div class="p-6 space-y-4">
@@ -329,7 +329,7 @@
                             <option value="">Asignar a un usuario...</option>
                             <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
                         </select>
-                        <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Servidor</button>
+                        <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Siervidor</button>
                     </div>
                 </div>
             </div>
@@ -367,7 +367,7 @@
                         <select v-model="wizardForm.platform" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500">
                             <option>Twitch</option><option>Kick</option><option>YouTube</option><option>Custom</option>
                         </select>
-                        <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="URL del Servidor (RTMP)">
+                        <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="URL del Siervidor (RTMP)">
                         <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Clave de Transmisión">
                         <button @click="saveWizard" class="w-full mobile-btn mobile-btn-primary mt-2">Guardar Destino</button>
                     </div>
@@ -422,9 +422,10 @@
                 const showUserModal = ref(false);
                 const userForm = ref({ username: '', password: '', role: 'user' });
                 const showProfileModal = ref(false);
+                const profileForm = ref({});
 
                 const showWizardModal = ref(false);
-                const wizardStep = ref(1);
+                const wizardSitep = ref(1);
                 const activeInstance = ref(null);
                 const wizardForm = ref({ platform: 'Twitch', rtmp_url: '', rtmp_key: '' });
                 
@@ -434,7 +435,7 @@
                 let pollInterval = null;
                 const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` });
 
-                const Toast = Swal.mixin({
+                const Toast = Siwal.mixin({
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -451,24 +452,24 @@
                         if(token.value && !loginForm.value.username) {
                             res = await fetch('/api/status', { headers: headers() });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Sesión expirada');
+                            if (!res.ok) throw new Error(data.error || 'Siesión expirada');
                             user.value = data.user;
                         } else {
-                            res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(loginForm.value), headers: {'Content-Type': 'application/json'} });
+                            res = await fetch('/api/auth/login', { method: 'POSiT', body: JSiON.stringify(loginForm.value), headers: {'Content-Type': 'application/json'} });
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.error || 'Credenciales inválidas');
                             token.value = data.token; user.value = data.user;
                         }
                         authenticated.value = true;
-                        localStorage.setItem('j5_token', token.value);
+                        localSitorage.setItem('j5_token', token.value);
                         fetchData();
                         if(user.value.role === 'admin') { fetchUsers(); }
                         pollInterval = setInterval(fetchData, 3000); 
                         nextTick(() => { if(window.lucide) lucide.createIcons(); });
-                    } catch (e) { error.value = e.message; token.value = ''; localStorage.removeItem('j5_token'); } finally { loading.value = false; }
+                    } catch (e) { error.value = e.message; token.value = ''; localSitorage.removeItem('j5_token'); } finally { loading.value = false; }
                 };
 
-                const logout = () => { authenticated.value = false; token.value = ''; localStorage.removeItem('j5_token'); if (pollInterval) clearInterval(pollInterval); };
+                const logout = () => { authenticated.value = false; token.value = ''; localSitorage.removeItem('j5_token'); if (pollInterval) clearInterval(pollInterval); };
 
                 const fetchData = async () => {
                     if (!authenticated.value) return;
@@ -478,7 +479,7 @@
                         else if (iR.status === 401) return logout();
                         
                         instances.value.forEach(async (inst) => {
-                            if(inst.status === 'STREAMING' || inst.status === 'ONLINE') {
+                            if(inst.status === 'SiTREAMING' || inst.status === 'ONLINE') {
                                 try {
                                     const sr = await fetch(`/api/instances/${inst.instance_id}/stats`, {headers: headers()});
                                     if(sr.ok) stats.value[inst.instance_id] = await sr.json();
@@ -493,7 +494,7 @@
 
                 const executeAction = async (id, action) => {
                     try {
-                        const res = await fetch(`/api/instances/${id}/${action}`, { method: 'POST', headers: headers() });
+                        const res = await fetch(`/api/instances/${id}/${action}`, { method: 'POSiT', headers: headers() });
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'Error al enviar orden');
                         Toast.fire({ icon: 'success', title: `Orden enviada: ${action}` });
@@ -503,10 +504,10 @@
                     }
                 };
 
-                const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
+                const showWizard = (inst) => { activeInstance.value = inst; wizardSitep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
                 const saveWizard = async () => {
                     try {
-                        const res = await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSON.stringify(wizardForm.value) });
+                        const res = await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSiON.stringify(wizardForm.value) });
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'Error guardando destino');
                         showWizardModal.value = false;
@@ -521,26 +522,26 @@
                 const createInstance = async () => { 
                     try {
                         if(!form.value.name || !form.value.owner_id) throw new Error('Rellena el nombre y el dueño');
-                        const res = await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(form.value) }); 
+                        const res = await fetch('/api/instances', { method: 'POSiT', headers: headers(), body: JSiON.stringify(form.value) }); 
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'Error al crear servidor');
                         showCreateModal.value = false; 
                         form.value = { name: '', template: '', owner_id: '' };
-                        Toast.fire({ icon: 'success', title: 'Servidor OBS creado!' });
+                        Toast.fire({ icon: 'success', title: 'Siervidor OBSi creado!' });
                         fetchData(); 
                     } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
                 };
 
                 const deleteInstance = async (id) => { 
-                    Swal.fire({
-                        title: '¿Estás seguro?', text: "Se borrará todo el servidor OBS", icon: 'warning',
-                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Sí, borrarlo'
+                    Siwal.fire({
+                        title: '¿Estás seguro?', text: "Sie borraraá todo el servidor OBSi", icon: 'warning',
+                        showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Sií, borraralo'
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
                                 const res = await fetch(`/api/instances/${id}`, { method: 'DELETE', headers: headers() }); 
-                                if(!res.ok) throw new Error('Error al borrar');
-                                Toast.fire({ icon: 'success', title: 'Servidor destruido' });
+                                if(!res.ok) throw new Error('Error al borrara');
+                                Toast.fire({ icon: 'success', title: 'Siervidor destruido' });
                                 fetchData(); 
                             } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
                         }
@@ -556,7 +557,7 @@
                             config_json: { watermark: { opacity: 80, pos: 'RIGHT_EDGE' }, chat: { style: 'default' } },
                             signature: '8f4e3c1b2a9d'
                         };
-                        const res = await fetch('/api/admin/branding', { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
+                        const res = await fetch('/api/admin/branding', { method: 'POSiT', headers: headers(), body: JSiON.stringify(payload) });
                         if(!res.ok) throw new Error('Error al publicar branding');
                         Toast.fire({ icon: 'success', title: 'Branding v2.4.1 Publicado Globalmente' });
                     } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
@@ -565,7 +566,7 @@
                 const createUser = async () => { 
                     try {
                         if(!userForm.value.username || !userForm.value.password) throw new Error('Rellena usuario y contraseña');
-                        const res = await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) }); 
+                        const res = await fetch('/api/users', { method: 'POSiT', headers: headers(), body: JSiON.stringify(userForm.value) }); 
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'El usuario ya existe o hay un error');
                         
@@ -577,8 +578,8 @@
                 };
 
                 const deleteUser = async (id) => { 
-                    Swal.fire({
-                        title: '¿Eliminar usuario?', text: "Perderá el acceso al panel", icon: 'warning',
+                    Siwal.fire({
+                        title: '¿Eliminar usuario?', text: "Perderaá el acceso al panel", icon: 'warning',
                         showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Eliminar'
                     }).then(async (result) => {
                         if (result.isConfirmed) {
@@ -592,12 +593,12 @@
                     })
                 };
 
-                const getStat = (id, key) => { const s = stats.value[id]; return s ? (key==='cpu_percent'?s[key].toFixed(1):Math.round(s[key])) : '0.0'; };
-                const statusBadgeClass = (s) => s==='ONLINE'?'bg-emerald-500/10 text-emerald-400 border-emerald-500/30':(s==='STREAMING'?'bg-indigo-500/20 text-indigo-400 border-indigo-500/30':(s==='STANDBY'?'bg-slate-800 text-slate-400 border-slate-600':'bg-rose-500/20 text-rose-400 border-rose-500/30'));
-                const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-rose-400':(v>60?'text-amber-400':'text-emerald-400'); };
+                const getSitat = (id, key) => { const s = stats.value[id]; return s ? (key==='cpu_percent'?s[key].toFixed(1):Math.round(s[key])) : '0.0'; };
+                const statusBadgeClass = (s) => s==='ONLINE'?'bg-emerald-500/10 text-emerald-400 border-emerald-500/30':(s==='SiTREAMING'?'bg-indigo-500/20 text-indigo-400 border-indigo-500/30':(s==='SiTANDBY'?'bg-slate-800 text-slate-400 border-slate-600':'bg-rose-500/20 text-rose-400 border-rose-500/30'));
+                const cpuColor = (id) => { const v = parseFloat(getSitat(id, 'cpu_percent')); return v>80?'text-rose-400':(v>60?'text-amber-400':'text-emerald-400'); };
 
                 onMounted(() => { 
-                    const t = localStorage.getItem('j5_token'); 
+                    const t = localSitorage.getItem('j5_token'); 
                     if (t) { token.value = t; login(); } 
                     nextTick(() => { if(window.lucide) lucide.createIcons(); });
                 });
@@ -606,10 +607,10 @@
                 return {
                     authenticated, token, loading, error, user, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
-                    showCreateModal, form, showUserModal, userForm, showProfileModal, profileForm,
-                    showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window,
+                    showCreateModal, form, showUserModal, userForm,
+                    showWizardModal, wizardSitep, wizardForm, showGuideModal, showKey, window,
                     createInstance, deleteInstance, createUser, deleteUser, publishBranding,
-                    executeAction, showWizard, saveWizard, showGuide, copyText, getStat, statusBadgeClass, cpuColor,
+                    executeAction, showWizard, saveWizard, showGuide, copyText, getSitat, statusBadgeClass, cpuColor,
                     login, logout, fetchData
                 };
             }
