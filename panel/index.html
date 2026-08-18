@@ -57,7 +57,7 @@
                     <div class="relative">
                         <input v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500 transition-colors" placeholder="Contrasena">
                         <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
-                            <span v-if="showLoginPassword" key="eye1"><i data-lucide="eye" class="w-5 h-5"></i></span><span v-else key="eye-off1"><i data-lucide="eye-off" class="w-5 h-5"></i></span>
+                            <span v-if="showLoginPassword"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span v-else><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                         </button>
                     </div>
 
@@ -369,7 +369,7 @@
                         <div class="relative">
                             <input v-model="userForm.password" :type="showCreatePassword ? 'text' : 'password'" required class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Contrasena">
                             <button type="button" @click="showCreatePassword = !showCreatePassword" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
-                                <span v-if="showCreatePassword" key="eye2"><i data-lucide="eye" class="w-5 h-5"></i></span><span v-else key="eye-off2"><i data-lucide="eye-off" class="w-5 h-5"></i></span>
+                                <span v-if="showCreatePassword"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span v-else><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                             </button>
                         </div>
 
@@ -428,7 +428,7 @@
                                 <code class="flex-1 bg-black/50 p-2 rounded text-rose-400 text-sm">
                                     {{ showKey ? activeInstance.stream_key : '••••••••••••••••••••' }}
                                 </code>
-                                <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><span v-if="showKey" key="eye3"><i data-lucide="eye" class="w-4 h-4"></i></span><span v-else key="eye-off3"><i data-lucide="eye-off" class="w-4 h-4"></i></span></button>
+                                <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><span v-if="showKey"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span v-else><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span></button>
                                 <button @click="copyText(activeInstance.stream_key)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
                             </div>
                         </div>
