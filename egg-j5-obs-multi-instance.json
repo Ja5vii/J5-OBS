@@ -97,6 +97,51 @@
       "user_viewable": true,
       "user_editable": true,
       "rules": "required|boolean"
+    },
+    {
+      "name": "Database Host",
+      "description": "PostgreSQL Host address",
+      "env_variable": "J5_DB_HOST",
+      "default_value": "127.0.0.1",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string"
+    },
+    {
+      "name": "Database Port",
+      "description": "PostgreSQL Port",
+      "env_variable": "J5_DB_PORT",
+      "default_value": "5432",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|integer"
+    },
+    {
+      "name": "Database User",
+      "description": "PostgreSQL Username",
+      "env_variable": "J5_DB_USER",
+      "default_value": "postgres",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string"
+    },
+    {
+      "name": "Database Password",
+      "description": "PostgreSQL Password",
+      "env_variable": "J5_DB_PASS",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string"
+    },
+    {
+      "name": "Database Name",
+      "description": "PostgreSQL Database Name",
+      "env_variable": "J5_DB_NAME",
+      "default_value": "j5obs",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string"
     }
   ]
 }

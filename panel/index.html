@@ -2,229 +2,354 @@
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J5 OBS Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>J5 OBS SaaS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { dark: '#0f172a', darker: '#0b1120', card: '#1e293b', primary: '#6366f1', primaryHover: '#4f46e5', success: '#10b981', danger: '#ef4444', warning: '#f59e0b' } } } }
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { dark: '#0b1121', card: '#1e293b', primary: '#3b82f6', primaryHover: '#2563eb', success: '#10b981', danger: '#ef4444', warning: '#f59e0b', j5dark: '#050b14' } } } }
     </script>
     <style>
-        body { background-color: #0b1120; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .slide-fade-enter-active { transition: all 0.3s ease-out; }
-        .slide-fade-leave-active { transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1); }
-        .slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(-20px); opacity: 0; }
+        body { background-color: #050b14; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .mobile-btn { padding: 1rem; border-radius: 1rem; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .mobile-btn-primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .mobile-btn-primary:active { transform: scale(0.97); }
+        .mobile-btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
         [v-cloak] { display: none; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
     <div id="app" v-cloak class="flex-1 flex flex-col h-full">
         <!-- LOGIN SCREEN -->
-        <div v-if="!authenticated" class="flex-1 flex items-center justify-center p-4">
-            <div class="glass rounded-2xl p-8 w-full max-w-md shadow-2xl">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-video text-3xl"></i></div>
-                    <h1 class="text-3xl font-bold text-white tracking-tight">J5 OBS</h1>
+        <div v-if="!authenticated" class="flex-1 flex items-center justify-center p-4 bg-j5dark">
+            <div class="glass rounded-3xl p-8 w-full max-w-sm shadow-2xl">
+                <div class="text-center mb-10">
+                    <div class="w-24 h-24 bg-gradient-to-br from-primary to-blue-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3"><i class="fa-solid fa-broadcast-tower text-4xl -rotate-3"></i></div>
+                    <h1 class="text-3xl font-black text-white tracking-tight">J5 OBS</h1>
+                    <p class="text-slate-400 mt-2 text-sm font-medium">Enterprise Streaming</p>
                 </div>
-                <form @submit.prevent="login" class="space-y-4">
+                <form @submit.prevent="login" class="space-y-5">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Usuario / Token</label>
-                        <input v-model="loginForm.username" type="text" class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="admin">
+                        <input v-model="loginForm.username" type="text" class="w-full px-5 py-4 bg-slate-900/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Usuario">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                        <input v-model="loginForm.password" type="password" class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="******">
+                        <input v-model="loginForm.password" type="password" class="w-full px-5 py-4 bg-slate-900/50 border border-slate-700/50 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition" placeholder="Contraseña">
                     </div>
-                    <button type="submit" :disabled="loading" class="w-full bg-primary hover:bg-primaryHover text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-primary/30 mt-4"><i v-if="loading" class="fa-solid fa-circle-notch fa-spin mr-2"></i><span>Conectar</span></button>
-                    <p v-if="error" class="text-danger text-sm text-center font-medium bg-danger/10 py-2 rounded-lg mt-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> {{ error }}</p>
+                    <button type="submit" :disabled="loading" class="w-full mobile-btn mobile-btn-primary mt-6">
+                        <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i><span v-else>ENTRAR</span>
+                    </button>
+                    <p v-if="error" class="text-danger text-sm text-center font-bold bg-danger/10 py-3 rounded-xl mt-4 border border-danger/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> {{ error }}</p>
                 </form>
             </div>
         </div>
 
-        <!-- DASHBOARD -->
-        <div v-else class="flex-1 flex flex-col">
-            <header class="glass sticky top-0 z-40 border-b border-slate-700">
+        <!-- APP SHELL -->
+        <div v-else class="flex-1 flex flex-col pb-20 md:pb-0">
+            <!-- HEADER -->
+            <header class="glass sticky top-0 z-40 border-b border-slate-800/50 shadow-sm">
                 <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center"><i class="fa-solid fa-video text-sm"></i></div>
-                        <h1 class="text-xl font-bold tracking-tight">J5 OBS <span class="text-primary">Manager</span></h1>
+                        <div class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center"><i class="fa-solid fa-broadcast-tower text-sm"></i></div>
+                        <h1 class="text-lg font-bold tracking-tight">J5 OBS</h1>
                     </div>
-                    <div class="flex items-center space-x-2 sm:space-x-4">
-                        <button v-if="user.role === 'admin'" @click="tab = 'users'" :class="tab==='users'?'text-primary':'text-slate-400'" class="hover:text-white transition w-10 h-10 flex items-center justify-center" title="Usuarios"><i class="fa-solid fa-users"></i></button>
-                        <button @click="tab = 'instances'" :class="tab==='instances'?'text-primary':'text-slate-400'" class="hover:text-white transition w-10 h-10 flex items-center justify-center" title="Instancias"><i class="fa-solid fa-server"></i></button>
-                        <button @click="showProfileModal = true" class="text-slate-400 hover:text-white transition w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center" title="Mi Perfil"><i class="fa-solid fa-user-circle"></i></button>
-                        <button @click="logout" class="text-slate-400 hover:text-danger transition w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center" title="Cerrar sesion"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-medium text-slate-300 hidden md:block">Hola, {{ user.username }}</span>
+                        <button @click="showProfileModal = true" class="text-slate-400 hover:text-white transition w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center"><i class="fa-solid fa-user-circle"></i></button>
+                        <button @click="logout" class="text-slate-400 hover:text-danger transition w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                     </div>
                 </div>
             </header>
 
-            <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-                <!-- Tab: Instances -->
-                <div v-if="tab === 'instances'">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">Instancias</h2>
-                            <p class="text-slate-400 text-sm mt-1">Gestiona tus instancias de OBS.</p>
-                        </div>
-                        <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-medium shadow-lg transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Nueva Instancia</button>
+            <!-- MAIN CONTENT -->
+            <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+                
+                <!-- USER DASHBOARD (Mobile First) -->
+                <div v-if="user.role === 'user'">
+                    <div v-if="instances.length === 0" class="glass rounded-3xl p-10 text-center mt-10">
+                        <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-4"></i>
+                        <h2 class="text-xl font-bold text-white mb-2">Sin instancia asignada</h2>
+                        <p class="text-slate-400">Contacta con J5 Studio para que asignen una instancia de streaming a tu cuenta.</p>
                     </div>
-
-                    <div v-if="instances.length === 0 && !loading" class="text-center py-20 glass rounded-2xl border border-slate-700/50 border-dashed">
-                        <h3 class="text-xl font-medium text-white mb-2">No tienes instancias</h3>
-                        <p class="text-slate-400">Pide a un administrador que te asigne una instancia o creala si eres admin.</p>
-                    </div>
-
-                    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div v-for="inst in instances" :key="inst.instance_id" class="glass rounded-2xl overflow-hidden shadow-lg flex flex-col">
-                            <div class="p-5 border-b border-slate-700/50 flex justify-between items-start bg-slate-800/30">
+                    
+                    <div v-else class="space-y-6">
+                        <div v-for="inst in instances" :key="inst.instance_id" class="glass rounded-3xl overflow-hidden shadow-2xl border border-slate-700/30">
+                            <!-- Status Header -->
+                            <div class="p-6 flex justify-between items-center" :class="inst.status==='STREAMING'?'bg-success/10':'bg-slate-800/30'">
                                 <div>
-                                    <h3 class="font-bold text-lg text-white">{{ inst.name }}</h3>
-                                    <p class="text-xs text-slate-500 mt-1 uppercase">{{ inst.instance_id }} <span v-if="user.role==='admin' && inst.owner_id">- User: {{inst.owner_id}}</span></p>
+                                    <h2 class="text-2xl font-black text-white tracking-tight">{{ inst.name }}</h2>
+                                    <p class="text-sm text-slate-400 mt-1 font-medium"><i class="fa-solid fa-server mr-1"></i> {{ inst.instance_id }}</p>
                                 </div>
-                                <span :class="statusBadgeClass(inst.status)" class="px-3 py-1 text-xs font-bold rounded-full uppercase">{{ inst.status }}</span>
-                            </div>
-                            <div class="p-5 flex-1 bg-slate-900/40">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="bg-slate-800/60 rounded-xl p-3"><p class="text-xs text-slate-400">CPU</p><p class="text-lg font-bold" :class="cpuColor(inst.instance_id)">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p></div>
-                                    <div class="bg-slate-800/60 rounded-xl p-3"><p class="text-xs text-slate-400">RAM</p><p class="text-lg font-bold" :class="ramColor(inst.instance_id)">{{ getStat(inst.instance_id, 'ram_mb') }} MB</p></div>
-                                    <div class="bg-slate-800/60 rounded-xl p-3"><p class="text-xs text-slate-400">WS Port</p><p class="text-sm font-semibold text-primary">{{ inst.websocket_port || '-' }}</p></div>
-                                    <div class="bg-slate-800/60 rounded-xl p-3"><p class="text-xs text-slate-400">Display</p><p class="text-sm font-semibold text-success">{{ inst.display ? ':'+inst.display : '-' }}</p></div>
+                                <div class="text-center">
+                                    <div class="inline-flex items-center justify-center px-4 py-2 rounded-2xl text-sm font-black tracking-widest border" :class="statusBadgeClass(inst.status)">
+                                        <i class="fa-solid fa-circle mr-2 text-[10px]" :class="inst.status==='STREAMING'?'animate-pulse':''"></i>
+                                        {{ inst.status }}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="p-4 border-t border-slate-700/50 bg-slate-800/20 flex flex-wrap gap-2 justify-end">
-                                <template v-if="['ONLINE', 'STREAMING', 'STARTING'].includes(inst.status)">
-                                    <button @click="executeAction(inst.instance_id, 'stop')" class="flex-1 bg-danger/20 text-danger hover:bg-danger/30 border border-danger/30 px-3 py-2 rounded-lg text-sm transition font-medium"><i class="fa-solid fa-stop"></i> Stop</button>
-                                    <button @click="executeAction(inst.instance_id, 'restart')" class="flex-1 bg-warning/20 text-warning hover:bg-warning/30 border border-warning/30 px-3 py-2 rounded-lg text-sm transition font-medium"><i class="fa-solid fa-rotate-right"></i> Restart</button>
-                                </template>
-                                <template v-else>
-                                    <button @click="executeAction(inst.instance_id, 'start')" class="flex-1 bg-success/20 text-success hover:bg-success/30 border border-success/30 px-3 py-2 rounded-lg text-sm transition font-medium"><i class="fa-solid fa-play"></i> Start</button>
-                                </template>
-                                <button @click="openSettings(inst)" class="w-10 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white rounded-lg"><i class="fa-solid fa-gear"></i></button>
-                                <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="w-10 bg-slate-700 hover:bg-danger/80 border border-slate-600 hover:border-danger text-slate-300 hover:text-white rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                            
+                            <!-- Main Controls -->
+                            <div class="p-6 space-y-6 bg-slate-900/50">
+                                <div class="flex flex-col gap-4">
+                                    <button v-if="['ONLINE', 'STREAMING', 'STARTING'].includes(inst.status)" @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn mobile-btn-danger w-full py-5 text-xl shadow-danger/20">
+                                        <i class="fa-solid fa-stop-circle text-2xl"></i> DETENER STREAM
+                                    </button>
+                                    <button v-else @click="executeAction(inst.instance_id, 'start')" class="mobile-btn mobile-btn-primary w-full py-5 text-xl shadow-primary/20">
+                                        <i class="fa-solid fa-play-circle text-2xl"></i> START STREAM
+                                    </button>
+                                </div>
+
+                                <!-- Connection Info -->
+                                <div class="bg-slate-800/40 rounded-2xl p-5 border border-slate-700/50">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="font-bold text-white"><i class="fa-solid fa-link text-primary mr-2"></i> Conexión a Plataforma</h3>
+                                        <span v-if="inst.connection_id" class="px-3 py-1 bg-success/20 text-success text-xs font-bold rounded-lg border border-success/30">CONFIGURADO</span>
+                                        <span v-else class="px-3 py-1 bg-warning/20 text-warning text-xs font-bold rounded-lg border border-warning/30">PENDIENTE</span>
+                                    </div>
+                                    
+                                    <div v-if="inst.connection_id" class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div><p class="text-xs text-slate-500 font-bold mb-1 uppercase">Plataforma</p><p class="text-sm font-medium text-white">{{ inst.platform || 'Custom' }}</p></div>
+                                            <div><p class="text-xs text-slate-500 font-bold mb-1 uppercase">Ingest</p><p class="text-sm font-medium text-success"><i class="fa-solid fa-check-circle mr-1"></i> Ready</p></div>
+                                        </div>
+                                        <div class="pt-4 border-t border-slate-700/50 flex gap-3">
+                                            <button @click="showWizard(inst)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition text-sm"><i class="fa-solid fa-gear mr-1"></i> Modificar</button>
+                                            <button @click="showGuide(inst)" class="flex-1 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 font-medium py-3 rounded-xl transition text-sm"><i class="fa-solid fa-book mr-1"></i> Ver Guía</button>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-center py-4">
+                                        <p class="text-sm text-slate-400 mb-4">Debes configurar la plataforma (Twitch, Moblin, etc.) antes de transmitir.</p>
+                                        <button @click="showWizard(inst)" class="bg-primary hover:bg-primaryHover text-white font-bold py-3 px-6 rounded-xl shadow-lg transition w-full"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> ASISTENTE DE CONFIGURACIÓN</button>
+                                    </div>
+                                </div>
+
+                                <!-- Live Stats -->
+                                <div v-if="inst.status === 'STREAMING' || inst.status === 'ONLINE'" class="grid grid-cols-3 gap-3">
+                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">CPU</p><p class="text-lg font-black" :class="cpuColor(inst.instance_id)">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p></div>
+                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">RAM</p><p class="text-lg font-black text-slate-200">{{ getStat(inst.instance_id, 'ram_mb') }}MB</p></div>
+                                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 text-center"><p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">Uptime</p><p class="text-lg font-black text-primary">Live</p></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Tab: Users -->
-                <div v-if="tab === 'users' && user.role === 'admin'">
-                    <div class="flex justify-between items-center mb-8">
-                        <h2 class="text-2xl font-bold text-white">Usuarios</h2>
-                        <button @click="showUserModal = true" class="bg-primary px-5 py-2.5 rounded-xl font-medium text-white shadow-lg"><i class="fa-solid fa-user-plus"></i> Nuevo</button>
+
+                <!-- ADMIN DASHBOARD -->
+                <div v-if="user.role === 'admin'" class="space-y-6">
+                    <div class="flex gap-2 p-1 bg-slate-800/50 rounded-2xl overflow-hidden mb-6 glass">
+                        <button @click="adminTab = 'instances'" :class="adminTab==='instances'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm">INSTANCIAS</button>
+                        <button @click="adminTab = 'users'" :class="adminTab==='users'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm">CUENTAS</button>
+                        <button @click="adminTab = 'audit'" :class="adminTab==='audit'?'bg-primary text-white shadow':'text-slate-400 hover:text-white'" class="flex-1 py-3 font-bold rounded-xl transition text-sm hidden md:block">AUDITORÍA</button>
                     </div>
-                    <div class="glass rounded-2xl p-4">
-                        <table class="w-full text-left">
-                            <thead><tr class="text-slate-400 border-b border-slate-700"><th class="pb-2 px-2">ID</th><th class="pb-2 px-2">Username</th><th class="pb-2 px-2">Role</th><th class="pb-2 text-right px-2">Actions</th></tr></thead>
-                            <tbody>
-                                <tr v-for="u in usersList" :key="u.id" class="border-b border-slate-800 hover:bg-slate-800/30 transition">
-                                    <td class="py-4 px-2 text-sm font-mono text-slate-500">{{u.id}}</td>
-                                    <td class="py-4 px-2 text-white font-medium">{{u.username}}</td>
-                                    <td class="py-4 px-2"><span class="px-2 py-1 text-xs rounded-lg font-medium" :class="u.role==='admin'?'bg-primary/20 text-primary border border-primary/30':'bg-slate-700 text-slate-300 border border-slate-600'">{{u.role.toUpperCase()}}</span></td>
-                                    <td class="py-4 px-2 text-right">
-                                        <button v-if="u.id !== user.id && u.id !== 'admin-env'" @click="deleteUser(u.id)" class="text-danger hover:text-white bg-danger/10 hover:bg-danger rounded-lg p-2 transition w-9 h-9"><i class="fa-solid fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                    <div v-if="adminTab === 'instances'">
+                        <div class="flex justify-end mb-4"><button @click="showCreateModal = true" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg"><i class="fa-solid fa-plus mr-1"></i> NUEVA INSTANCIA</button></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div v-for="inst in instances" :key="inst.instance_id" class="glass rounded-2xl p-5 border border-slate-700/50">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div><h3 class="font-bold text-lg text-white">{{ inst.name }}</h3><p class="text-xs text-slate-500 font-mono">{{ inst.instance_id }} | Dueño: <span class="text-primary font-bold">{{ inst.owner_id || 'Ninguno' }}</span></p></div>
+                                    <span :class="statusBadgeClass(inst.status)" class="px-2 py-1 text-[10px] font-black rounded-lg uppercase border">{{ inst.status }}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="executeAction(inst.instance_id, inst.status==='STANDBY'?'start':'stop')" class="flex-1 py-2 rounded-lg text-xs font-bold" :class="inst.status==='STANDBY'?'bg-success/20 text-success border border-success/30':'bg-danger/20 text-danger border border-danger/30'">{{inst.status==='STANDBY'?'START':'STOP'}}</button>
+                                    <button @click="deleteInstance(inst.instance_id)" class="px-3 bg-slate-800 text-danger hover:bg-danger hover:text-white rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="adminTab === 'users'">
+                        <div class="flex justify-end mb-4"><button @click="showUserModal = true" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg"><i class="fa-solid fa-user-plus mr-1"></i> CREAR CUENTA</button></div>
+                        <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-800/80"><tr class="text-slate-400 text-xs font-bold tracking-wider"><th class="py-4 px-4 uppercase">Username</th><th class="py-4 px-4 uppercase">Role</th><th class="py-4 px-4 text-right uppercase">Actions</th></tr></thead>
+                                <tbody>
+                                    <tr v-for="u in usersList" :key="u.id" class="border-t border-slate-700/30">
+                                        <td class="py-4 px-4 text-white font-medium">{{u.username}}</td>
+                                        <td class="py-4 px-4"><span class="px-2 py-1 text-[10px] font-bold rounded-lg border" :class="u.role==='admin'?'bg-primary/20 text-primary border-primary/30':'bg-slate-700 text-slate-300 border-slate-600'">{{u.role.toUpperCase()}}</span></td>
+                                        <td class="py-4 px-4 text-right">
+                                            <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="text-danger p-2 bg-danger/10 hover:bg-danger hover:text-white rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div v-if="adminTab === 'audit'">
+                        <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-800/80"><tr class="text-slate-400 text-xs font-bold"><th class="py-3 px-4">FECHA</th><th class="py-3 px-4">ACCIÓN</th><th class="py-3 px-4">ACTOR</th><th class="py-3 px-4 hidden md:table-cell">TARGET</th></tr></thead>
+                                <tbody>
+                                    <tr v-for="log in auditLogs" :key="log.id" class="border-t border-slate-700/30">
+                                        <td class="py-3 px-4 text-slate-400 text-xs">{{ new Date(log.created_at).toLocaleString() }}</td>
+                                        <td class="py-3 px-4 text-white font-medium">{{ log.action }}</td>
+                                        <td class="py-3 px-4 text-primary font-mono text-xs">{{ log.actor_id }}</td>
+                                        <td class="py-3 px-4 text-slate-400 font-mono text-xs hidden md:table-cell">{{ log.target || '-' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </main>
+
+            <!-- BOTTOM MOBILE NAV FOR ADMIN -->
+            <nav v-if="user.role === 'admin'" class="md:hidden fixed bottom-0 w-full glass border-t border-slate-700/50 z-40 pb-safe">
+                <div class="flex justify-around">
+                    <button @click="adminTab = 'instances'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='instances'?'text-primary':'text-slate-500'"><i class="fa-solid fa-server text-lg"></i><span class="text-[10px] font-bold">Instancias</span></button>
+                    <button @click="adminTab = 'users'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='users'?'text-primary':'text-slate-500'"><i class="fa-solid fa-users text-lg"></i><span class="text-[10px] font-bold">Cuentas</span></button>
+                    <button @click="adminTab = 'audit'" class="flex-1 py-4 flex flex-col items-center gap-1" :class="adminTab==='audit'?'text-primary':'text-slate-500'"><i class="fa-solid fa-list-check text-lg"></i><span class="text-[10px] font-bold">Auditoría</span></button>
+                </div>
+            </nav>
         </div>
 
-        <!-- Create Instance Modal -->
-        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-700"><h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-plus-circle text-primary"></i> Nueva Instancia</h2></div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Nombre</label>
-                        <input v-model="form.name" type="text" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Ej: Stream Secundario">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Template</label>
-                        <select v-model="form.template" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                            <option value="">Sin Template (Predeterminado)</option>
-                            <option v-for="tpl in templates" :key="tpl.name" :value="tpl.name">{{ tpl.name }}</option>
+        <!-- WIZARD MODAL -->
+        <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
+                    <h2 class="text-xl font-black text-white"><i class="fa-solid fa-wand-magic-sparkles text-primary mr-2"></i> Connection Wizard</h2>
+                    <button @click="showWizardModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <!-- Step 1 -->
+                    <div v-if="wizardStep === 1" class="space-y-4">
+                        <h3 class="text-lg font-bold text-white mb-4">1. Plataforma Destino</h3>
+                        <p class="text-sm text-slate-400 mb-6">¿A dónde quieres transmitir?</p>
+                        <select v-model="wizardForm.platform" class="w-full px-4 py-4 bg-slate-800 border border-slate-600 rounded-2xl text-white font-bold outline-none focus:border-primary">
+                            <option value="Twitch">Twitch</option>
+                            <option value="Kick">Kick</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Custom">Custom RTMP</option>
                         </select>
+                        <button @click="wizardStep = 2" class="w-full mobile-btn mobile-btn-primary mt-6">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Asignar Dueno (Usuario)</label>
-                        <select v-model="form.owner_id" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                            <option value="">Sin Dueno (Admin general)</option>
-                            <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
-                        </select>
+                    
+                    <!-- Step 2 -->
+                    <div v-if="wizardStep === 2" class="space-y-4">
+                        <h3 class="text-lg font-bold text-white mb-4">2. Credenciales</h3>
+                        <p class="text-sm text-slate-400 mb-6">Pega tu Stream Key de {{ wizardForm.platform }}.</p>
+                        
+                        <div v-if="wizardForm.platform === 'Custom' || wizardForm.platform === 'YouTube'" class="mb-4">
+                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">RTMP URL</label>
+                            <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="rtmp://...">
+                        </div>
+                        <div v-else class="hidden">{{ wizardForm.rtmp_url = wizardForm.platform === 'Twitch' ? 'rtmp://live.twitch.tv/app' : 'rtmp://live.kick.com/app' }}</div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Stream Key</label>
+                            <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="live_XXXXXXXXXX">
+                        </div>
+                        
+                        <div class="flex gap-3 mt-8">
+                            <button @click="wizardStep = 1" class="flex-1 px-4 py-4 bg-slate-700 text-white rounded-2xl font-bold">Atrás</button>
+                            <button @click="saveWizard" :disabled="loading" class="flex-[2] mobile-btn mobile-btn-primary">Generar Ingest <i class="fa-solid fa-check"></i></button>
+                        </div>
                     </div>
                 </div>
-                <div class="p-5 flex justify-end gap-3 bg-slate-800/30 border-t border-slate-700"><button @click="showCreateModal=false" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition">Cancelar</button><button @click="createInstance" class="px-5 py-2.5 bg-primary hover:bg-primaryHover text-white rounded-xl shadow-lg transition">Crear Instancia</button></div>
             </div>
         </div>
 
-        <!-- Create User Modal -->
-        <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-700"><h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-plus text-primary"></i> Nuevo Usuario</h2></div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
-                        <input v-model="userForm.username" type="text" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary" placeholder="usuario123">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-                        <input v-model="userForm.password" type="password" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary" placeholder="******">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Rol</label>
-                        <select v-model="userForm.role" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary">
-                            <option value="user">User</option><option value="admin">Admin</option>
-                        </select>
-                    </div>
+        <!-- GUIDE MODAL -->
+        <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
+                    <h2 class="text-xl font-black text-white"><i class="fa-solid fa-mobile-screen text-primary mr-2"></i> Configurar Emisión</h2>
+                    <button @click="showGuideModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
-                <div class="p-5 flex justify-end gap-3 bg-slate-800/30 border-t border-slate-700"><button @click="showUserModal=false" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition">Cancelar</button><button @click="createUser" class="px-5 py-2.5 bg-primary hover:bg-primaryHover text-white rounded-xl shadow-lg transition">Guardar Usuario</button></div>
+                <div class="p-6 overflow-y-auto space-y-6">
+                    <p class="text-sm text-slate-400">Copia estos datos en tu app de streaming (ej. Moblin, Prism Live) para enviar el video a J5 OBS.</p>
+                    
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">RTMP SERVER (URL)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" readonly :value="`rtmp://${window.location.hostname}:1935/live`" class="w-full bg-transparent text-white font-mono text-sm outline-none">
+                            <button @click="copyText(`rtmp://${window.location.hostname}:1935/live`)" class="text-primary hover:text-white p-2"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">STREAM KEY</label>
+                        <div class="flex items-center gap-2">
+                            <input :type="showKey?'text':'password'" readonly :value="activeInstance?.connection_id" class="w-full bg-transparent text-white font-mono text-sm outline-none">
+                            <button @click="showKey=!showKey" class="text-slate-400 hover:text-white p-2"><i class="fa-solid" :class="showKey?'fa-eye-slash':'fa-eye'"></i></button>
+                            <button @click="copyText(activeInstance?.connection_id)" class="text-primary hover:text-white p-2"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/10 border border-primary/20 p-4 rounded-2xl">
+                        <ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside font-medium">
+                            <li>Abre tu app (Moblin).</li>
+                            <li>Ve a Ajustes -> Conexión -> Custom RTMP.</li>
+                            <li>Pega la URL y la Key de arriba.</li>
+                            <li>Inicia el stream en la app.</li>
+                            <li>Vuelve aquí y pulsa <span class="text-primary font-bold">START STREAM</span>.</li>
+                        </ol>
+                    </div>
+                    
+                    <button @click="showGuideModal=false" class="w-full mobile-btn bg-slate-700 text-white mt-4">CERRAR</button>
+                </div>
             </div>
         </div>
 
-        <!-- Settings Modal -->
-        <div v-if="showSettingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-700"><h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-primary"></i> Configurar OBS</h2></div>
+        <!-- PROFILE MODAL -->
+        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <h2 class="text-xl font-black text-white">Mi Perfil</h2>
+                    <button @click="showProfileModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">RTMP URL</label>
-                        <input v-model="settingsForm.rtmp_url" type="text" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono text-sm outline-none focus:border-primary" placeholder="rtmp://live.twitch.tv/app">
+                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Username</label>
+                        <input type="text" readonly :value="user.username" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-500 outline-none cursor-not-allowed">
+                        <p class="text-[10px] text-slate-500 mt-1">El nombre de usuario es inmutable.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Stream Key</label>
-                        <input v-model="settingsForm.rtmp_key" type="password" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono text-sm outline-none focus:border-primary" placeholder="live_XXXXXXXX">
+                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Cambiar Contraseña</label>
+                        <input v-model="profileForm.password" type="password" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl text-white outline-none focus:border-primary" placeholder="Nueva Contraseña">
                     </div>
-                    <div v-if="user.role === 'admin'">
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Dueno de Instancia</label>
-                        <select v-model="settingsForm.owner_id" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary">
-                            <option value="">Sin Dueno (Admin)</option>
-                            <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
-                        </select>
-                    </div>
+                    <button @click="updateProfile" class="w-full mobile-btn mobile-btn-primary mt-4">Guardar</button>
                 </div>
-                <div class="p-5 flex justify-end gap-3 bg-slate-800/30 border-t border-slate-700"><button @click="showSettingsModal=false" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition">Cancelar</button><button @click="saveSettings" class="px-5 py-2.5 bg-primary hover:bg-primaryHover text-white rounded-xl shadow-lg transition">Guardar Cambios</button></div>
             </div>
         </div>
 
-        <!-- Profile Modal -->
-        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div class="glass border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-700"><h2 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-pen text-primary"></i> Mi Perfil</h2></div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
-                        <input v-model="profileForm.username" type="text" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary" placeholder="Nuevo Username">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-                        <input v-model="profileForm.password" type="password" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-primary" placeholder="Nueva (opcional)">
-                    </div>
+        <!-- CREATE MODALS FOR ADMIN -->
+        <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <h2 class="text-xl font-black text-white">Nueva Cuenta</h2>
+                    <button @click="showUserModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="p-5 flex justify-end gap-3 bg-slate-800/30 border-t border-slate-700"><button @click="showProfileModal=false" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition">Cancelar</button><button @click="updateProfile" class="px-5 py-2.5 bg-primary hover:bg-primaryHover text-white rounded-xl shadow-lg transition">Actualizar Perfil</button></div>
+                <div class="p-6 space-y-4">
+                    <input v-model="userForm.username" type="text" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Username (ej: victor)">
+                    <input v-model="userForm.password" type="password" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Contraseña Inicial">
+                    <select v-model="userForm.role" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600">
+                        <option value="user">Cliente (User)</option><option value="admin">Administrador</option>
+                    </select>
+                    <button @click="createUser" class="w-full mobile-btn mobile-btn-primary mt-2">Crear</button>
+                </div>
+            </div>
+        </div>
+        
+        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass border border-slate-700 rounded-3xl w-full max-w-sm shadow-2xl">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <h2 class="text-xl font-black text-white">Nueva Instancia</h2>
+                    <button @click="showCreateModal=false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <input v-model="form.name" type="text" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600" placeholder="Nombre (ej: OBS Victor)">
+                    <select v-model="form.owner_id" class="w-full px-4 py-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-600">
+                        <option value="">Seleccionar Dueño...</option>
+                        <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.username }}</option>
+                    </select>
+                    <button @click="createInstance" class="w-full mobile-btn mobile-btn-primary mt-2">Crear Instancia</button>
+                </div>
             </div>
         </div>
 
@@ -240,28 +365,29 @@
                 const error = ref('');
                 const user = ref({ id: '', role: 'user', username: '' });
                 const loginForm = ref({ username: '', password: '' });
-                const tab = ref('instances');
-
+                
+                const adminTab = ref('instances');
                 const instances = ref([]);
                 const stats = ref({});
-                const templates = ref([]);
                 const usersList = ref([]);
+                const auditLogs = ref([]);
                 
                 const showCreateModal = ref(false);
                 const form = ref({ name: '', template: '', owner_id: '' });
-                
                 const showUserModal = ref(false);
                 const userForm = ref({ username: '', password: '', role: 'user' });
-
-                const showSettingsModal = ref(false);
-                const activeInstance = ref(null);
-                const settingsForm = ref({ rtmp_url: '', rtmp_key: '', owner_id: '' });
-
                 const showProfileModal = ref(false);
-                const profileForm = ref({ username: '', password: '' });
+                const profileForm = ref({ password: '' });
+
+                const showWizardModal = ref(false);
+                const wizardStep = ref(1);
+                const activeInstance = ref(null);
+                const wizardForm = ref({ platform: 'Twitch', rtmp_url: '', rtmp_key: '' });
+                
+                const showGuideModal = ref(false);
+                const showKey = ref(false);
 
                 let pollInterval = null;
-
                 const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` });
 
                 const login = async () => {
@@ -271,25 +397,18 @@
                         if(token.value && !loginForm.value.username) {
                             res = await fetch('/api/status', { headers: headers() });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Credenciales invalidas');
+                            if (!res.ok) throw new Error(data.error || 'Sesión expirada');
                             user.value = data.user;
                         } else {
-                            if(loginForm.value.username === '' && loginForm.value.password !== '') {
-                                token.value = loginForm.value.password;
-                                res = await fetch('/api/status', { headers: headers() });
-                            } else {
-                                res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(loginForm.value), headers: {'Content-Type': 'application/json'} });
-                            }
+                            res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(loginForm.value), headers: {'Content-Type': 'application/json'} });
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Credenciales invalidas');
-                            if (data.token) token.value = data.token;
-                            if (data.user) user.value = data.user;
+                            if (!res.ok) throw new Error(data.error || 'Credenciales inválidas');
+                            token.value = data.token; user.value = data.user;
                         }
-                        
                         authenticated.value = true;
                         localStorage.setItem('j5_token', token.value);
                         fetchData();
-                        if(user.value.role === 'admin') fetchUsers();
+                        if(user.value.role === 'admin') { fetchUsers(); fetchAudit(); }
                         pollInterval = setInterval(fetchData, 5000);
                     } catch (e) { error.value = e.message; token.value = ''; localStorage.removeItem('j5_token'); } finally { loading.value = false; }
                 };
@@ -299,89 +418,70 @@
                 const fetchData = async () => {
                     if (!authenticated.value) return;
                     try {
-                        const [iR, sR] = await Promise.all([fetch('/api/instances', { headers: headers() }), fetch('/api/stats', { headers: headers() })]);
+                        const [iR] = await Promise.all([fetch('/api/instances', { headers: headers() })]);
                         if (iR.ok) instances.value = (await iR.json()).instances || [];
                         else if (iR.status === 401) return logout();
-                        if (sR.ok) {
-                            const newStats = {}; (await sR.json()).instances.forEach(s => newStats[s.instance_id] = s); stats.value = newStats;
-                        }
+                        
+                        instances.value.forEach(async (inst) => {
+                            if(inst.status === 'STREAMING' || inst.status === 'ONLINE') {
+                                try {
+                                    const sr = await fetch(`/api/instances/${inst.instance_id}/stats`, {headers: headers()});
+                                    if(sr.ok) stats.value[inst.instance_id] = await sr.json();
+                                }catch(e){}
+                            }
+                        });
                     } catch(e) {}
                 };
 
-                const fetchUsers = async () => {
-                    if(user.value.role !== 'admin') return;
-                    try { const res = await fetch('/api/users', { headers: headers() }); if (res.ok) usersList.value = (await res.json()).users || []; } catch(e){}
-                };
-
-                const createInstance = async () => {
-                    try {
-                        const body = { name: form.value.name, template: form.value.template };
-                        if(form.value.owner_id) body.owner_id = form.value.owner_id;
-                        const res = await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(body) });
-                        if (!res.ok) throw new Error((await res.json()).error);
-                        showCreateModal.value = false; form.value = { name: '', template: '', owner_id: '' }; fetchData();
-                    } catch (e) { alert(e.message); }
-                };
-
-                const createUser = async () => {
-                    try {
-                        const res = await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) });
-                        if (!res.ok) throw new Error((await res.json()).error);
-                        showUserModal.value = false; userForm.value = { username: '', password: '', role: 'user' }; fetchUsers();
-                    } catch (e) { alert(e.message); }
-                };
-
-                const deleteUser = async (id) => {
-                    if(!confirm('Eliminar usuario y desvincular sus instancias?')) return;
-                    await fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers() });
-                    fetchUsers(); fetchData();
-                };
+                const fetchUsers = async () => { try { const res = await fetch('/api/users', { headers: headers() }); if (res.ok) usersList.value = (await res.json()).users || []; } catch(e){} };
+                const fetchAudit = async () => { try { const res = await fetch('/api/audit', { headers: headers() }); if (res.ok) auditLogs.value = (await res.json()).audit_logs || []; } catch(e){} };
 
                 const executeAction = async (id, action) => {
                     await fetch(`/api/instances/${id}/${action}`, { method: 'POST', headers: headers() });
                     fetchData();
+                    if(user.value.role==='admin') fetchAudit();
                 };
 
-                const deleteInstance = async (id) => {
-                    if(!confirm('Eliminar instancia por completo?')) return;
-                    await fetch(`/api/instances/${id}`, { method: 'DELETE', headers: headers() });
-                    fetchData();
+                const showWizard = (inst) => { activeInstance.value = inst; wizardStep.value = 1; wizardForm.value = { platform: inst.platform||'Twitch', rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'' }; showWizardModal.value = true; };
+                const saveWizard = async () => {
+                    loading.value = true;
+                    try {
+                        await fetch(`/api/instances/${activeInstance.value.instance_id}/connection`, { method: 'PATCH', headers: headers(), body: JSON.stringify(wizardForm.value) });
+                        showWizardModal.value = false;
+                        fetchData();
+                        if(user.value.role==='admin') fetchAudit();
+                    } finally { loading.value = false; }
                 };
 
-                const openSettings = (inst) => { activeInstance.value = inst; settingsForm.value = { rtmp_url: inst.rtmp_url||'', rtmp_key: inst.rtmp_key||'', owner_id: inst.owner_id||'' }; showSettingsModal.value = true; };
-                const saveSettings = async () => {
-                    const body = { rtmp_url: settingsForm.value.rtmp_url, rtmp_key: settingsForm.value.rtmp_key };
-                    if(user.value.role === 'admin' && settingsForm.value.owner_id !== undefined) body.owner_id = settingsForm.value.owner_id || null;
-                    await fetch(`/api/instances/${activeInstance.value.instance_id}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) });
-                    showSettingsModal.value = false; fetchData();
-                };
+                const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; };
+                const copyText = (txt) => { navigator.clipboard.writeText(txt); alert("Copiado al portapapeles"); };
+
+                const createInstance = async () => { await fetch('/api/instances', { method: 'POST', headers: headers(), body: JSON.stringify(form.value) }); showCreateModal.value = false; fetchData(); };
+                const deleteInstance = async (id) => { if(confirm('¿Eliminar instancia?')) { await fetch(`/api/instances/${id}`, { method: 'DELETE', headers: headers() }); fetchData(); } };
+                
+                const createUser = async () => { await fetch('/api/users', { method: 'POST', headers: headers(), body: JSON.stringify(userForm.value) }); showUserModal.value = false; fetchUsers(); };
+                const deleteUser = async (id) => { if(confirm('¿Eliminar usuario?')) { await fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers() }); fetchUsers(); fetchData(); } };
 
                 const updateProfile = async () => {
-                    try {
-                        const res = await fetch('/api/users/me', { method: 'PUT', headers: headers(), body: JSON.stringify(profileForm.value) });
-                        if (!res.ok) throw new Error((await res.json()).error);
-                        showProfileModal.value = false; profileForm.value = { username: '', password: '' };
-                        alert("Perfil actualizado. Por favor, inicia sesion de nuevo."); logout();
-                    } catch (e) { alert(e.message); }
+                    if(!profileForm.value.password) return;
+                    await fetch('/api/users/me', { method: 'PUT', headers: headers(), body: JSON.stringify(profileForm.value) });
+                    showProfileModal.value = false; alert("Contraseña actualizada."); logout();
                 };
 
                 const getStat = (id, key) => { const s = stats.value[id]; return s ? (key==='cpu_percent'?s[key].toFixed(1):Math.round(s[key])) : '0.0'; };
-                const statusBadgeClass = (s) => s==='ONLINE'?'bg-success/20 text-success border border-success/30':(s==='STREAMING'?'bg-primary/20 text-primary border border-primary/30':(s==='STANDBY'?'bg-slate-700/50 text-slate-400 border border-slate-600':'bg-danger/20 text-danger border border-danger/30'));
-                const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-danger':(v>60?'text-warning':'text-slate-200'); };
-                const ramColor = (id) => { const v = parseFloat(getStat(id, 'ram_mb')); return v>2000?'text-danger':(v>1500?'text-warning':'text-slate-200'); };
-                const activeCount = computed(() => instances.value.filter(i => ['ONLINE', 'STREAMING'].includes(i.status)).length);
+                const statusBadgeClass = (s) => s==='ONLINE'?'bg-success/10 text-success border-success/30':(s==='STREAMING'?'bg-primary/20 text-primary border-primary/30':(s==='STANDBY'?'bg-slate-800 text-slate-400 border-slate-600':'bg-danger/20 text-danger border-danger/30'));
+                const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-danger':(v>60?'text-warning':'text-success'); };
 
                 onMounted(() => { const t = localStorage.getItem('j5_token'); if (t) { token.value = t; login(); } });
                 onUnmounted(() => { if (pollInterval) clearInterval(pollInterval); });
 
                 return {
-                    authenticated, token, loading, error, user, loginForm, tab,
-                    instances, stats, templates, usersList, activeCount,
-                    showCreateModal, form, createInstance,
-                    showUserModal, userForm, createUser, deleteUser,
-                    showSettingsModal, activeInstance, settingsForm, openSettings, saveSettings,
-                    showProfileModal, profileForm, updateProfile,
-                    executeAction, deleteInstance, getStat, statusBadgeClass, cpuColor, ramColor,
+                    authenticated, token, loading, error, user, loginForm, adminTab,
+                    instances, stats, usersList, auditLogs, activeInstance,
+                    showCreateModal, form, showUserModal, userForm, showProfileModal, profileForm,
+                    showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window,
+                    createInstance, deleteInstance, createUser, deleteUser, updateProfile,
+                    executeAction, showWizard, saveWizard, showGuide, copyText, getStat, statusBadgeClass, cpuColor,
                     login, logout, fetchData
                 };
             }

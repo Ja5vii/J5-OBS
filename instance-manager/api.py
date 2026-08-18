@@ -94,7 +94,9 @@ def create_api_app(manager):
             
         import secrets
         token = secrets.token_hex(32)
-        await manager.db.update_user(user["id"], token=token)
+        await manager.db.create_session(token, user["id"])
+        
+        # We can also set a secure cookie if they requested it, but we'll stick to returning it for now.
         return web.json_response({"token": token, "user": {"id": user["id"], "username": user["username"], "role": user["role"]}})
 
     @auth
@@ -175,7 +177,9 @@ def create_api_app(manager):
         if not await _check_access(request, request.match_info["id"]):
             return web.json_response({"error": "Not found or Forbidden"}, status=403)
         try:
-            return web.json_response(await manager.start_instance(request.match_info["id"]))
+            res = await manager.start_instance(request.match_info["id"])
+            await manager.db.log_audit_event(request["user"]["id"], "START_INSTANCE", request.match_info["id"])
+            return web.json_response(res)
         except ValueError as e:
             return web.json_response({"error": str(e)}, status=404)
         except Exception as e:
@@ -186,7 +190,9 @@ def create_api_app(manager):
         if not await _check_access(request, request.match_info["id"]):
             return web.json_response({"error": "Not found or Forbidden"}, status=403)
         try:
-            return web.json_response(await manager.stop_instance(request.match_info["id"]))
+            res = await manager.stop_instance(request.match_info["id"])
+            await manager.db.log_audit_event(request["user"]["id"], "STOP_INSTANCE", request.match_info["id"])
+            return web.json_response(res)
         except ValueError as e:
             return web.json_response({"error": str(e)}, status=404)
 
@@ -232,6 +238,45 @@ def create_api_app(manager):
             await manager.db.update_instance(request.match_info["id"], **updates)
         return web.json_response(await manager.db.get_instance(request.match_info["id"]))
 
+
+    @auth
+    @require_admin
+    async def get_audit_logs(request):
+        logs = await manager.db.get_audit_logs()
+        return web.json_response({"audit_logs": logs})
+
+    @auth
+    async def update_connection(request):
+        if not await _check_access(request, request.match_info["id"]):
+            return web.json_response({"error": "Not found or Forbidden"}, status=403)
+        data = await request.json()
+        import secrets
+        
+        updates = {}
+        if "platform" in data:
+            updates["platform"] = data["platform"]
+        if "rtmp_key" in data:
+            updates["rtmp_key"] = data["rtmp_key"]
+            
+        # Optional custom RTMP
+        if "rtmp_url" in data:
+            updates["rtmp_url"] = data["rtmp_url"]
+        else:
+            # Generate automatically based on platform if needed, or leave empty if it's twitch, wait OBS needs full URL if it's custom.
+            # But we are using service.json type "rtmp_custom". So rtmp_url is required.
+            pass
+            
+        # Generate connection ID if it doesn't exist
+        inst = await manager.db.get_instance(request.match_info["id"])
+        if not inst.get("connection_id"):
+            updates["connection_id"] = f"j5_{request['user']['username']}_{secrets.token_hex(4)}"
+
+        if updates:
+            await manager.db.update_instance(request.match_info["id"], **updates)
+            await manager.db.log_audit_event(request["user"]["id"], "UPDATE_CONNECTION", request.match_info["id"], updates)
+
+        return web.json_response(await manager.db.get_instance(request.match_info["id"]))
+
     @auth
     async def manager_status(request):
         instances = await manager.db.get_all_instances()
@@ -252,8 +297,7 @@ def create_api_app(manager):
     async def update_me(request):
         data = await request.json()
         updates = {}
-        if data.get("username"): updates["username"] = data["username"]
-        if data.get("password"):
+                if data.get("password"):
             import hashlib
             updates["password_hash"] = hashlib.sha256(data["password"].encode()).hexdigest()
         if updates:
@@ -277,6 +321,8 @@ def create_api_app(manager):
     app.router.add_post("/api/instances/{id}/start", start_instance)
     app.router.add_post("/api/instances/{id}/stop", stop_instance)
     app.router.add_post("/api/instances/{id}/restart", restart_instance)
+    app.router.add_get("/api/audit", get_audit_logs)
+    app.router.add_patch("/api/instances/{id}/connection", update_connection)
     app.router.add_get("/api/instances/{id}/stats", get_stats)
     app.router.add_get("/api/stats", get_all_stats)
     app.router.add_patch("/api/instances/{id}", update_config)

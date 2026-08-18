@@ -38,8 +38,16 @@ class InstanceManager:
         self._templates = None
 
     async def start(self):
+        import subprocess
         self._running = True
         self.logger.info("J5 OBS Instance Manager starting...")
+        
+        try:
+            subprocess.Popen(["nginx", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")])
+            self.logger.info("NGINX RTMP Ingest started")
+        except Exception as e:
+            self.logger.error(f"Failed to start NGINX: {e}")
+
         await self.db.initialize()
         await self.port_manager.initialize()
         await self.display_manager.initialize()
@@ -49,6 +57,7 @@ class InstanceManager:
         self.logger.info("Instance Manager ready")
 
     async def stop(self):
+        import subprocess
         self.logger.info("Shutting down...")
         self._running = False
         self.health_manager.stop()
@@ -58,6 +67,12 @@ class InstanceManager:
             if inst["status"] in ("ONLINE", "STREAMING", "STARTING"):
                 await self.process_manager.stop_instance(inst["instance_id"])
         await self.db.close()
+        
+        try:
+            subprocess.run(["nginx", "-s", "stop", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")])
+        except Exception:
+            pass
+            
         self.logger.info("Shutdown complete")
 
     def _load_templates(self):

@@ -189,7 +189,39 @@ class ProcessManager:
                     "type": "rtmp_custom"
                 }, f)
 
+        connection_id = inst_data.get("connection_id")
+
         scene_col_path = os.path.join(scene_dir, f"{scene_collection}.json")
         if not os.path.exists(scene_col_path):
+            scene_data = {
+                "current_program_scene": "Main",
+                "current_scene": "Main",
+                "name": scene_collection,
+                "sources": [
+                    {
+                        "id": "scene",
+                        "name": "Main",
+                        "settings": {
+                            "items": []
+                        }
+                    }
+                ]
+            }
+            if connection_id:
+                scene_data["sources"][0]["settings"]["items"].append({
+                    "name": "J5_Ingest",
+                    "visible": True
+                })
+                scene_data["sources"].append({
+                    "id": "ffmpeg_source",
+                    "name": "J5_Ingest",
+                    "settings": {
+                        "input": f"rtmp://127.0.0.1:1935/live/{connection_id}",
+                        "is_local_file": False,
+                        "hw_decode": True,
+                        "clear_on_media_end": True
+                    }
+                })
+                
             with open(scene_col_path, "w") as f:
-                json.dump({"name": scene_collection, "scenes": [{"name": "Main"}]}, f)
+                json.dump(scene_data, f, indent=2)
