@@ -282,7 +282,7 @@ class Database:
     async def get_all_instances(self):
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
-                SELECT i.*, o.user_id as owner_id, c.connection_id, cred.custom_rtmp_url as rtmp_url, cred.platform_id as platform
+                SELECT i.*, o.user_id as owner_id, c.connection_id, cred.custom_rtmp_url as rtmp_url, cred.encrypted_stream_key as rtmp_key, cred.platform_id as platform
                 FROM instances i
                 LEFT JOIN instance_owners o ON i.instance_id = o.instance_id
                 LEFT JOIN connections c ON i.instance_id = c.instance_id
@@ -294,7 +294,7 @@ class Database:
     async def get_instances_by_owner(self, owner_id):
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
-                SELECT i.*, o.user_id as owner_id, c.connection_id, cred.custom_rtmp_url as rtmp_url, cred.platform_id as platform
+                SELECT i.*, o.user_id as owner_id, c.connection_id, cred.custom_rtmp_url as rtmp_url, cred.encrypted_stream_key as rtmp_key, cred.platform_id as platform
                 FROM instances i
                 JOIN instance_owners o ON i.instance_id = o.instance_id
                 LEFT JOIN connections c ON i.instance_id = c.instance_id
