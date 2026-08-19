@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS instances (
     ws_password VARCHAR(255),
     profile VARCHAR(255),
     scene_collection VARCHAR(255),
+    auto_stop BOOLEAN DEFAULT true,
     restart_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL

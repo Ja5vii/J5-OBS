@@ -143,7 +143,7 @@ def create_api_app(manager):
             return web.Response(status=404)
             
         inst_id = target_inst["instance_id"]
-        if manager.process_manager.is_running(inst_id):
+        if manager.process_manager.is_running(inst_id) and target_inst.get("auto_stop", True):
             manager.logger.info(f"Auto-stopping instance {inst_id} due to stream disconnect")
             import asyncio
             asyncio.create_task(manager.stop_instance(inst_id))
@@ -277,7 +277,7 @@ def create_api_app(manager):
         if not await _check_access(request, request.match_info["id"]):
             return web.json_response(dumps=custom_dumps, data={"error": "Not found or Forbidden"}, status=403)
         data = await request.json()
-        allowed = {"name", "rtmp_url", "rtmp_key", "profile", "scene_collection"}
+        allowed = {"name", "rtmp_url", "rtmp_key", "profile", "scene_collection", "auto_stop"}
         if request["user"]["role"] == "admin":
             allowed.add("owner_id")
         updates = {k: v for k, v in data.items() if k in allowed}
