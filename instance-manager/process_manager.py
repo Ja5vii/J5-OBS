@@ -281,7 +281,7 @@ class ProcessManager:
                     basic_ini = os.path.join(profile_path, "basic.ini")
                     with open(basic_ini, "w") as f:
                         f.write(f"[General]\nName={instance_id}\n")
-                        f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\n")
+                        f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\nColorFormat=I420\nColorSpace=709\nColorRange=Partial\n")
                         f.write("[Output]\nMode=Advanced\n")
                         f.write("[AdvOut]\nEncoder=obs_x264\nTrack1Bitrate=160\nRecEncoder=none\nFFOutputToFile=false\n")
                         f.write("[x264]\nbitrate=4500\nrate_control=CBR\nkeyint_sec=2\npreset=veryfast\nprofile=high\ntune=zerolatency\nx264opts=keyint=60 min-keyint=60 no-scenecut\n")
@@ -357,13 +357,17 @@ class ProcessManager:
                                     "settings": {
                                         "input": f"rtmp://127.0.0.1:1935/live/{connection_id}",
                                         "is_local_file": False,
+                                        "local_file": False,
+                                        "is_looping": False,
                                         "looping": False,
                                         "restart_on_activate": True,
                                         "close_when_inactive": False,
+                                        "is_clear_on_media_end": False,
                                         "clear_on_media_end": False,
-                                        "reconnect_delay_sec": 2,
-                                        "buffering_mb": 2,
-                                        "hw_decode": False
+                                        "is_hw_decoding": False,
+                                        "hw_decode": False,
+                                        "reconnect_delay_sec": 1,
+                                        "buffering_mb": 2
                                     },
                                     "versioned_id": "ffmpeg_source"
                                 }
