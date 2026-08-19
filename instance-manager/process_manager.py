@@ -202,6 +202,10 @@ class ProcessManager:
             import obsws_python as obsws
             client = obsws.ReqClient(host='127.0.0.1', port=ws_port, password=ws_password, timeout=3)
             try:
+                client.set_current_program_scene("Main")
+            except Exception:
+                pass
+            try:
                 # Trigger media restart in case OBS started before initial video keyframe
                 client.press_input_properties_button("Moblin_RTMP", "restart")
             except Exception:
@@ -308,9 +312,60 @@ class ProcessManager:
                             "current_scene": "Main",
                             "current_program_scene": "Main",
                             "name": sc_name,
-                            "scene_order": [{"name": "Main"}],
-                            "scenes": [{"id": "scene","name": "Main","settings": {"id_counter": 2,"items": [{"align": 5,"bounds": {"x": 1920.0, "y": 1080.0},"bounds_align": 0,"bounds_type": 2,"id": 1,"locked": False,"name": "Moblin_RTMP","pos": {"x": 0.0, "y": 0.0},"rot": 0.0,"scale": {"x": 1.0, "y": 1.0},"visible": True}]}}],
-                            "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"looping": False,"restart_on_activate": True,"close_when_inactive": False,"clear_on_media_end": False,"reconnect_delay_sec": 2,"buffering_mb": 2,"hw_decode": False}}]
+                            "scene_order": [
+                                {"name": "Main"},
+                                {"name": "BRB"}
+                            ],
+                            "sources": [
+                                {
+                                    "id": "scene",
+                                    "name": "Main",
+                                    "settings": {
+                                        "id_counter": 2,
+                                        "items": [
+                                            {
+                                                "align": 5,
+                                                "bounds": {"x": 1920.0, "y": 1080.0},
+                                                "bounds_align": 0,
+                                                "bounds_type": 2,
+                                                "id": 1,
+                                                "locked": False,
+                                                "name": "Moblin_RTMP",
+                                                "pos": {"x": 0.0, "y": 0.0},
+                                                "rot": 0.0,
+                                                "scale": {"x": 1.0, "y": 1.0},
+                                                "visible": True
+                                            }
+                                        ]
+                                    },
+                                    "versioned_id": "scene"
+                                },
+                                {
+                                    "id": "scene",
+                                    "name": "BRB",
+                                    "settings": {
+                                        "id_counter": 1,
+                                        "items": []
+                                    },
+                                    "versioned_id": "scene"
+                                },
+                                {
+                                    "id": "ffmpeg_source",
+                                    "name": "Moblin_RTMP",
+                                    "settings": {
+                                        "input": f"rtmp://127.0.0.1:1935/live/{connection_id}",
+                                        "is_local_file": False,
+                                        "looping": False,
+                                        "restart_on_activate": True,
+                                        "close_when_inactive": False,
+                                        "clear_on_media_end": False,
+                                        "reconnect_delay_sec": 2,
+                                        "buffering_mb": 2,
+                                        "hw_decode": False
+                                    },
+                                    "versioned_id": "ffmpeg_source"
+                                }
+                            ]
                         }
                         with open(main_scene_json, "w") as f:
                             json.dump(scene_data, f)
