@@ -322,7 +322,13 @@ class ProcessManager:
                                 {
                                     "id": "scene",
                                     "name": "Main",
+                                    "versioned_id": "scene",
+                                    "enabled": True,
+                                    "muted": False,
+                                    "volume": 1.0,
+                                    "mixers": 0,
                                     "settings": {
+                                        "custom_size": False,
                                         "id_counter": 2,
                                         "items": [
                                             {
@@ -336,24 +342,34 @@ class ProcessManager:
                                                 "pos": {"x": 0.0, "y": 0.0},
                                                 "rot": 0.0,
                                                 "scale": {"x": 1.0, "y": 1.0},
+                                                "scale_filter": "disable",
                                                 "visible": True
                                             }
                                         ]
-                                    },
-                                    "versioned_id": "scene"
+                                    }
                                 },
                                 {
                                     "id": "scene",
                                     "name": "BRB",
+                                    "versioned_id": "scene",
+                                    "enabled": True,
+                                    "muted": False,
+                                    "volume": 1.0,
+                                    "mixers": 0,
                                     "settings": {
+                                        "custom_size": False,
                                         "id_counter": 1,
                                         "items": []
-                                    },
-                                    "versioned_id": "scene"
+                                    }
                                 },
                                 {
                                     "id": "ffmpeg_source",
                                     "name": "Moblin_RTMP",
+                                    "versioned_id": "ffmpeg_source",
+                                    "enabled": True,
+                                    "muted": False,
+                                    "volume": 1.0,
+                                    "mixers": 255,
                                     "settings": {
                                         "input": f"rtmp://127.0.0.1:1935/live/{connection_id}",
                                         "is_local_file": False,
@@ -367,9 +383,9 @@ class ProcessManager:
                                         "is_hw_decoding": False,
                                         "hw_decode": False,
                                         "reconnect_delay_sec": 1,
-                                        "buffering_mb": 2
-                                    },
-                                    "versioned_id": "ffmpeg_source"
+                                        "buffering_mb": 2,
+                                        "speed_percent": 100
+                                    }
                                 }
                             ]
                         }
