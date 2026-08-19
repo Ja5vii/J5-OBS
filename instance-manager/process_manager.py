@@ -280,12 +280,20 @@ class ProcessManager:
                     os.makedirs(profile_path, exist_ok=True)
                     basic_ini = os.path.join(profile_path, "basic.ini")
                     with open(basic_ini, "w") as f:
-                        f.write(f"[General]\nName={instance_id}\n")
-                        f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\nColorFormat=I420\nColorSpace=709\nColorRange=Partial\n")
-                        f.write("[Output]\nMode=Advanced\n")
-                        f.write("[AdvOut]\nEncoder=obs_x264\nTrack1Bitrate=160\nRecEncoder=none\nFFOutputToFile=false\n")
-                        f.write("[x264]\nbitrate=4500\nrate_control=CBR\nkeyint_sec=2\npreset=veryfast\nprofile=high\ntune=zerolatency\nx264opts=keyint=60 min-keyint=60 no-scenecut\n")
-                        f.write("[SimpleOutput]\nVBitrate=4500\nStreamEncoder=x264\nPreset=veryfast\nRecEncoder=x264\nx264opts=keyint=60 min-keyint=60 no-scenecut\n")
+                        f.write(
+                            f"[General]\nName={instance_id}\n\n"
+                            f"[Video]\n"
+                            f"BaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\n"
+                            f"FPSType=0\nFPSCommon=30\nFPSInt=30\nScaleType=bicubic\n"
+                            f"ColorFormat=I420\nColorSpace=709\nColorRange=Partial\n\n"
+                            f"[Output]\nMode=Simple\n\n"
+                            f"[SimpleOutput]\n"
+                            f"VBitrate=4500\nABitrate=160\nStreamEncoder=x264\nRecEncoder=x264\n"
+                            f"Preset=veryfast\nCustomRateControl=CBR\n"
+                            f"x264opts=keyint=60 min-keyint=60 no-scenecut\n\n"
+                            f"[AdvOut]\n"
+                            f"Encoder=obs_x264\nTrack1Bitrate=160\nRecEncoder=none\nFFOutputToFile=false\n"
+                        )
                     
                     rtmp_url = inst_data.get("rtmp_url")
                     rtmp_key = inst_data.get("rtmp_key")
