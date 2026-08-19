@@ -280,15 +280,24 @@ def create_api_app(manager):
             return web.Response(status=403)
             
         inst_id = request.match_info["id"]
-        log_path = os.path.join(manager.base_dir, "instances", inst_id, "logs", "obs.log")
+        obs_log_dir = os.path.join(manager.base_dir, "instances", inst_id, "config", "obs-studio", "logs")
+        log_path = None
+        if os.path.exists(obs_log_dir):
+            files = sorted([f for f in os.listdir(obs_log_dir) if f.endswith(".txt")])
+            if files:
+                log_path = os.path.join(obs_log_dir, files[-1])
+        
+        if not log_path:
+            log_path = os.path.join(manager.base_dir, "instances", inst_id, "logs", "obs.log")
+            
         if not os.path.exists(log_path):
             return web.Response(status=404, text="Log not found")
             
         with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
             
-        # Return last 100 lines
-        return web.Response(text="".join(lines[-100:]))
+        # Return last 200 lines
+        return web.Response(text="".join(lines[-200:]))
 
     @auth
     async def get_stats(request):
