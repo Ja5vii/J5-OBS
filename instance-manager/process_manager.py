@@ -281,9 +281,10 @@ class ProcessManager:
                     with open(basic_ini, "w") as f:
                         f.write(f"[General]\nName={instance_id}\n")
                         f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\n")
-                        f.write("[SimpleOutput]\nVBitrate=3000\nStreamEncoder=x264\nRecEncoder=x264\n")
-                        f.write("[Output]\nMode=Simple\n")
-                        f.write("[AdvOut]\nEncoder=obs_x264\n")
+                        f.write("[Output]\nMode=Advanced\n")
+                        f.write("[AdvOut]\nEncoder=obs_x264\nTrack1Bitrate=160\nRecEncoder=none\nFFOutputToFile=false\n")
+                        f.write("[x264]\nbitrate=4500\nrate_control=CBR\nkeyint_sec=2\npreset=veryfast\nprofile=high\ntune=zerolatency\nx264opts=keyint=60 min-keyint=60 no-scenecut\n")
+                        f.write("[SimpleOutput]\nVBitrate=4500\nStreamEncoder=x264\nPreset=veryfast\nRecEncoder=x264\nx264opts=keyint=60 min-keyint=60 no-scenecut\n")
                     
                     rtmp_url = inst_data.get("rtmp_url")
                     rtmp_key = inst_data.get("rtmp_key")
@@ -359,9 +360,10 @@ class ProcessManager:
                                         "restart_on_activate": True,
                                         "close_when_inactive": False,
                                         "clear_on_media_end": False,
-                                        "reconnect_delay_sec": 2,
-                                        "buffering_mb": 2,
-                                        "hw_decode": False
+                                        "reconnect_delay_sec": 1,
+                                        "buffering_mb": 1,
+                                        "hw_decode": False,
+                                        "input_format": "live_flv"
                                     },
                                     "versioned_id": "ffmpeg_source"
                                 }
