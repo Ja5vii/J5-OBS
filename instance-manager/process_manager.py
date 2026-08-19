@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import asyncio
 import subprocess
@@ -106,8 +106,8 @@ class ProcessManager:
         self._ensure_dirs(instance_id)
         inst_dir = self._dir(instance_id)
         config_dir = os.path.join(inst_dir, "config")
-        profile_dir = os.path.join(inst_dir, "profiles")
-        scene_dir = os.path.join(inst_dir, "scenes")
+        profile_dir = os.path.join(inst_dir, "config", "obs-studio", "basic", "profiles")
+        scene_dir = os.path.join(inst_dir, "config", "obs-studio", "basic", "scenes")
         log_dir = os.path.join(inst_dir, "logs")
         self._write_obs_config(instance_id, profile_dir, scene_dir, inst)
         self.manager.display_manager.start_xvfb(instance_id)
@@ -119,10 +119,9 @@ class ProcessManager:
         profile_name = inst.get("profile", "default") or "default"
         obs_cmd = [
             "obs",
-            "--startintrouhiding",
             "--multiplatform",
             "--portable",
-            "--profile", os.path.join(profile_dir, profile_name),
+            "--profile", profile_name,
             "--collection", inst.get("scene_collection", "Main"),
             "--scene", "Main",
             "--startstreaming",
@@ -220,39 +219,20 @@ class ProcessManager:
                 }, f)
 
         connection_id = inst_data.get("connection_id")
-
-        scene_col_path = os.path.join(scene_dir, f"{scene_collection}.json")
-        if not os.path.exists(scene_col_path):
+        if connection_id:
+            scene_collection = inst_data.get("scene_collection", "Main")
+            os.makedirs(scene_dir, exist_ok=True)
+            main_scene_json = os.path.join(scene_dir, f"{scene_collection}.json")
+            
+            # Always overwrite to ensure source is correct
             scene_data = {
-                "current_program_scene": "Main",
                 "current_scene": "Main",
+                "current_program_scene": "Main",
                 "name": scene_collection,
-                "sources": [
-                    {
-                        "id": "scene",
-                        "name": "Main",
-                        "settings": {
-                            "items": []
-                        }
-                    }
-                ]
+                "scene_order": [{"name": "Main"}],
+                "scenes": [{"id": "scene","name": "Main","settings": {"id_counter": 2,"items": [{"align": 5,"bounds": {"x": 1920.0, "y": 1080.0},"bounds_align": 0,"bounds_type": 2,"id": 1,"locked": False,"name": "Moblin_RTMP","pos": {"x": 0.0, "y": 0.0},"rot": 0.0,"scale": {"x": 1.0, "y": 1.0},"visible": True}]}}],
+                "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"hw_decode": False,"clear_on_media_end": False,"restart_on_activate": True}}]
             }
-            if connection_id:
-                scene_data["sources"][0]["settings"]["items"].append({
-                    "name": "J5_Ingest",
-                    "visible": True
-                })
-                scene_data["sources"].append({
-                    "id": "ffmpeg_source",
-                    "name": "J5_Ingest",
-                    "settings": {
-                        "input": f"rtmp://127.0.0.1:1935/live/{connection_id}",
-                        "is_local_file": False,
-                        "hw_decode": True,
-                        "clear_on_media_end": True
-                    }
-                })
-                
-            with open(scene_col_path, "w") as f:
-                json.dump(scene_data, f, indent=2)
+            with open(main_scene_json, "w") as f:
+                json.dump(scene_data, f)
 
