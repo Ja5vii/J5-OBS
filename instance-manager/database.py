@@ -153,6 +153,8 @@ class Database:
                 except Exception: pass
                 await self._seed_platforms(conn)
                 await self._seed_roles_and_admin(conn)
+                # Reset all instances to STANDBY on boot since processes are dead
+                await conn.execute("UPDATE instances SET status = 'STANDBY', pid = NULL")
         except Exception as e:
             print(f"Failed to initialize PostgreSQL: {e}")
             raise
