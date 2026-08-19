@@ -3,14 +3,14 @@ with open(filepath, 'r', encoding='utf-8') as f:
     content = f.read()
 
 target = """                vnc_proc = subprocess.Popen(
-                    [binary, "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+                    [binary, "-display", display_str, "-SecurityTypes", "None", "-rfbport", vnc_port],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )"""
 
 replacement = """                import sys
                 vnc_proc = subprocess.Popen(
-                    [binary, "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+                    [binary, "display=" + display_str, "SecurityTypes=None", "rfbport=" + vnc_port],
                     stdout=sys.stderr,
                     stderr=sys.stderr,
                 )"""
@@ -19,6 +19,6 @@ if target in content:
     content = content.replace(target, replacement)
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
-    print("Fixed x11vnc stderr")
+    print("Fixed VNC args and routing to stderr")
 else:
     print("Target not found")
