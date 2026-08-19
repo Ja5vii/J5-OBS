@@ -1,3 +1,4 @@
+from twitch_bot import TwitchBot
 import os
 import sys
 import json
@@ -22,7 +23,7 @@ from api import create_api_app
 
 
 class InstanceManager:
-    __slots__ = ("base_dir", "config", "logger", "db", "port_manager", "display_manager", "process_manager", "health_manager", "recovery_manager", "_running", "_templates")
+    __slots__ = ("base_dir", "config", "logger", "db", "port_manager", "display_manager", "process_manager", "health_manager", "recovery_manager", "_running", "_templates", "twitch_bot")
 
     def __init__(self):
         self.base_dir = os.environ.get("CONTAINER_DIR", "/home/container")
@@ -34,6 +35,7 @@ class InstanceManager:
         self.process_manager = ProcessManager(self, self.config, self.logger)
         self.health_manager = HealthManager(self, self.config, self.logger)
         self.recovery_manager = RecoveryManager(self, self.config, self.logger)
+        self.twitch_bot = TwitchBot(self)
         self._running = False
         self._templates = None
 

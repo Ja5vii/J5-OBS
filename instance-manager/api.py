@@ -147,6 +147,7 @@ def create_api_app(manager):
             manager.logger.info(f"Auto-starting instance {inst_id} due to incoming stream")
             import asyncio
             asyncio.create_task(manager.start_instance(inst_id))
+            asyncio.create_task(manager.twitch_bot.send_message("[J5-OBS] Moblin stream connected. Starting OBS..."))
             
         return web.Response(status=200)
 
@@ -163,10 +164,13 @@ def create_api_app(manager):
             return web.Response(status=404)
             
         inst_id = target_inst["instance_id"]
-        if manager.process_manager.is_running(inst_id) and target_inst.get("auto_stop", True):
+        # Treat None or missing auto_stop as True (only explicitly False disables auto-stop)
+        should_stop = target_inst.get("auto_stop") is not False
+        if manager.process_manager.is_running(inst_id) and should_stop:
             manager.logger.info(f"Auto-stopping instance {inst_id} due to stream disconnect")
             import asyncio
             asyncio.create_task(manager.stop_instance(inst_id))
+            asyncio.create_task(manager.twitch_bot.send_message("[J5-OBS] Moblin disconnected. Stopping OBS..."))
             
         return web.Response(status=200)
 
