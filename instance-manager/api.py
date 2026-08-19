@@ -41,6 +41,9 @@ def require_auth(manager):
             else:
                 provided = request.headers.get("X-Auth-Token", "")
             
+            if not provided:
+                provided = request.query.get("token", "")
+            
             env_token = manager.config.get()["manager"]["token"]
             
             if env_token and hmac.compare_digest(provided, env_token):

@@ -24,7 +24,8 @@
             document.getElementById('top_bar').innerText = 'Connecting to ' + instId + '...';
             
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = protocol + '//' + window.location.host + '/api/instances/' + instId + '/vnc';
+            const token = localStorage.getItem('j5_token') || '';
+            const wsUrl = protocol + '//' + window.location.host + '/api/instances/' + instId + '/vnc?token=' + token;
             
             const rfb = new RFB(document.getElementById('screen'), wsUrl, {
                 wsProtocols: ['binary']
