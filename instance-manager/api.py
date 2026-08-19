@@ -459,9 +459,27 @@ def create_api_app(manager):
     app.router.add_get("/api/audit", get_audit_logs)
     app.router.add_patch("/api/instances/{id}/connection", update_connection)
     app.router.add_get("/api/instances/{id}/stats", get_stats)
+    app.router.add_get("/api/instances/{id}/log", get_obs_log)
     app.router.add_get("/api/stats", get_all_stats)
     app.router.add_patch("/api/instances/{id}", update_config)
     app.router.add_get("/api/templates", list_templates)
+
+    @auth
+    async def get_obs_log(request):
+        if not await _check_access(request, request.match_info["id"]):
+            return web.Response(status=403)
+            
+        inst_id = request.match_info["id"]
+        log_path = os.path.join(manager.base_dir, "instances", inst_id, "logs", "obs.log")
+        if not os.path.exists(log_path):
+            return web.Response(status=404, text="Log not found")
+            
+        with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+            
+        # Return last 100 lines
+        return web.Response(text="".join(lines[-100:]))
+
 
     @auth
     async def vnc_proxy(request):

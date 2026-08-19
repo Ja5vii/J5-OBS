@@ -440,6 +440,10 @@
                                 <button @click="copyText('rtmp://' + window.location.hostname + ':1935/live/' + activeInstance.connection_id)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
                             </div>
                             <p class="text-xs text-slate-400 mt-2">Copia y pega esta URL entera en Moblin.</p>
+                            <div class="flex gap-2">
+                                <button @click="viewLog(activeInstance.instance_id)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold text-white transition">Ver Log OBS</button>
+                                <button @click="showWizard(activeInstance)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white transition">Cambiar Destino</button>
+                            </div>
                             <a :href="getMoblinLink(activeInstance.connection_id)" class="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white transition"><i data-lucide="smartphone" class="w-4 h-4"></i> Auto-Configurar en Moblin</a>
                         </div>
                         <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
@@ -562,6 +566,15 @@
                         const dataInst = await resInst.json();
                         instances.value = dataInst.instances;
                     } catch (e) { console.error('Error fetching stats', e); }
+                };
+
+                const viewLog = async (id) => {
+                    try {
+                        const res = await fetch(`/api/instances/${id}/log`, { headers: headers() });
+                        if(!res.ok) throw new Error('No se pudo cargar el log');
+                        const text = await res.text();
+                        Swal.fire({ title: 'OBS Log', html: `<pre class="text-left text-xs bg-slate-900 p-2 rounded overflow-auto max-h-96 text-emerald-400">${text.replace(/</g, '&lt;')}</pre>`, width: '80%', background: '#1e293b', color: '#fff' });
+                    } catch(e) { Toast.fire({icon:'error',title:e.message}); }
                 };
 
                 const executeAction = async (id, action) => {
@@ -757,7 +770,7 @@
                     brandingConfig, logoPreview, logoFile, isPublishing, logoInput,
                     handleLogoSelect, handleLogoDrop,
                     createInstance, deleteInstance, createUser, deleteUser, publishBranding,
-                    executeAction, showWizard, saveWizard, showGuide, copyText, getMoblinLink, getStat, statusBadgeClass, cpuColor,
+                    executeAction, showWizard, saveWizard, showGuide, copyText, getMoblinLink, viewLog, getStat, statusBadgeClass, cpuColor,
                     login, logout, fetchData
                 };
             }
