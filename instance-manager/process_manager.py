@@ -201,6 +201,11 @@ class ProcessManager:
         try:
             import obsws_python as obsws
             client = obsws.ReqClient(host='127.0.0.1', port=ws_port, password=ws_password, timeout=3)
+            try:
+                # Trigger media restart in case OBS started before initial video keyframe
+                client.press_input_properties_button("Moblin_RTMP", "restart")
+            except Exception:
+                pass
             res = client.get_stream_status()
             if not getattr(res, 'output_active', False):
                 self.logger.info(f"{instance_id} Stream not active. Forcing StartStream via WebSocket...")
@@ -305,7 +310,7 @@ class ProcessManager:
                             "name": sc_name,
                             "scene_order": [{"name": "Main"}],
                             "scenes": [{"id": "scene","name": "Main","settings": {"id_counter": 2,"items": [{"align": 5,"bounds": {"x": 1920.0, "y": 1080.0},"bounds_align": 0,"bounds_type": 2,"id": 1,"locked": False,"name": "Moblin_RTMP","pos": {"x": 0.0, "y": 0.0},"rot": 0.0,"scale": {"x": 1.0, "y": 1.0},"visible": True}]}}],
-                            "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"hw_decode": False,"clear_on_media_end": False,"restart_on_activate": True}}]
+                            "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"looping": False,"restart_on_activate": True,"close_when_inactive": False,"clear_on_media_end": False,"reconnect_delay_sec": 2,"buffering_mb": 2,"hw_decode": False}}]
                         }
                         with open(main_scene_json, "w") as f:
                             json.dump(scene_data, f)
