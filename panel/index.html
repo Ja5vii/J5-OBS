@@ -620,7 +620,7 @@
 
                 const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; nextTick(() => { if(window.lucide) lucide.createIcons(); }); };
                 const copyText = (txt) => { navigator.clipboard.writeText(txt); Toast.fire({ icon: 'success', title: 'Copiado al portapapeles!' }); };
-                const getMoblinLink = (id) => 'moblin://?' + encodeURIComponent(JSON.stringify({ streams: [{ name: "J5-OBS", url: "rtmp://" + window.location.hostname + ":1935/live/" + id }] }));
+                const getMoblinLink = (id) => 'moblin://?' + JSON.stringify({ streams: [{ name: "J5-OBS", url: "rtmp://" + window.location.hostname + ":1935/live/" + id }] });
 
                 const createInstance = async () => { 
                     try {
