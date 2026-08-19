@@ -155,7 +155,6 @@ class ProcessManager:
         self._processes[instance_id] = {"process": proc, "log_file": log_fh}
         await self.manager.db.update_instance(instance_id, pid=proc.pid, status="ONLINE")
         self.logger.info(f"{instance_id} started (PID: {proc.pid})")
-        import asyncio
         asyncio.create_task(self._force_start_stream(instance_id, inst.get("websocket_port"), inst.get("ws_password", "")))
 
     async def _force_start_stream(self, instance_id, ws_port, ws_password):
