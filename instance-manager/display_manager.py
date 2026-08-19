@@ -87,16 +87,18 @@ class DisplayManager:
             binary = getattr(self, "vnc_binary", "x11vnc")
             if "x0vncserver" in binary:
                 # TigerVNC x0vncserver args
+                import sys
                 vnc_proc = subprocess.Popen(
-                    [binary, "-display", display_str, "-SecurityTypes", "None", "-rfbport", vnc_port],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
+                    [binary, "display=" + display_str, "SecurityTypes=None", "rfbport=" + vnc_port],
+                    stdout=sys.stderr,
+                    stderr=sys.stderr,
                 )
             else:
+                import sys
                 vnc_proc = subprocess.Popen(
                     [binary, "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
+                    stdout=sys.stderr,
+                    stderr=sys.stderr,
                 )
         except Exception as e:
             print(f"Failed to start VNC: {e}")
