@@ -129,8 +129,10 @@ class ProcessManager:
         env = os.environ.copy()
         env["LIBGL_ALWAYS_SOFTWARE"] = "1"
         env["GALLIUM_DRIVER"] = "llvmpipe"
-        env["DBUS_SESSION_BUS_ADDRESS"] = "disabled"
-        env["XDG_RUNTIME_DIR"] = "/tmp"
+        env["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
+        runtime_dir = os.path.join(inst_dir, "runtime")
+        os.makedirs(runtime_dir, exist_ok=True)
+        env["XDG_RUNTIME_DIR"] = runtime_dir
         env.update(display_env)
         if pulse_socket:
             env["PULSE_SERVER"] = f"unix:{pulse_socket}"
