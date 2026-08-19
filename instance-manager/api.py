@@ -123,7 +123,7 @@ def create_api_app(manager):
             return web.Response(status=404)
             
         inst_id = target_inst["instance_id"]
-        if not manager.is_running(inst_id):
+        if not manager.process_manager.is_running(inst_id):
             manager.logger.info(f"Auto-starting instance {inst_id} due to incoming stream")
             import asyncio
             asyncio.create_task(manager.start_instance(inst_id))
@@ -143,7 +143,7 @@ def create_api_app(manager):
             return web.Response(status=404)
             
         inst_id = target_inst["instance_id"]
-        if manager.is_running(inst_id):
+        if manager.process_manager.is_running(inst_id):
             manager.logger.info(f"Auto-stopping instance {inst_id} due to stream disconnect")
             import asyncio
             asyncio.create_task(manager.stop_instance(inst_id))
