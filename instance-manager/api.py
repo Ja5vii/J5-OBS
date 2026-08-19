@@ -396,6 +396,9 @@ def create_api_app(manager):
             return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
     app.router.add_post("/api/auth/login", login)
     app.router.add_get("/api/status", manager_status)
+    app.router.add_post("/api/internal/on_publish", internal_on_publish)
+    app.router.add_post("/api/internal/on_publish_done", internal_on_publish_done)
+
     app.router.add_get("/api/users", list_users)
     app.router.add_post("/api/users", create_user)
     app.router.add_delete("/api/users/{id}", delete_user)

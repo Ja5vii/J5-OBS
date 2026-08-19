@@ -125,6 +125,7 @@ class ProcessManager:
             "--profile", os.path.join(profile_dir, profile_name),
             "--collection", inst.get("scene_collection", "Main"),
             "--scene", "Main",
+            "--startstreaming",
         ]
         env = os.environ.copy()
         env.update(display_env)
