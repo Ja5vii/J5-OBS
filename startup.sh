@@ -15,6 +15,9 @@ if [ -d "${INSTALL_DIR}/.git" ]; then
     git reset --hard origin/main || true
 fi
 
+echo "Checking Python dependencies..."
+pip3 install --user -r "${INSTALL_DIR}/requirements.txt" || true
+
 echo "$$" > "${PID_FILE}"
 
 if command -v pulseaudio >/dev/null 2>&1; then

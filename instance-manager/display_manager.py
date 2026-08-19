@@ -37,22 +37,36 @@ class DisplayManager:
         cfg = self.config.get()
         resolution = cfg["displays"]["resolution"]
         depth = cfg["displays"]["depth"]
+
         display_str = f":{display_num}"
         proc = subprocess.Popen(
             ["Xvfb", display_str, "-screen", "0", f"{resolution}x{depth}", "-ac", "+extension", "GLX", "+render", "-noreset"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        self._xvfb_processes[instance_id] = proc
+        # Give Xvfb a moment to start before launching VNC
+        import time
+        time.sleep(0.5)
+        vnc_port = str(5900 + display_num)
+        vnc_proc = subprocess.Popen(
+            ["x11vnc", "-display", display_str, "-bg", "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        self._xvfb_processes[instance_id] = {"xvfb": proc, "vnc": vnc_proc}
+
 
     def stop_xvfb(self, instance_id):
-        proc = self._xvfb_processes.pop(instance_id, None)
-        if proc and proc.poll() is None:
-            proc.terminate()
-            try:
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                proc.kill()
+        procs = self._xvfb_processes.pop(instance_id, None)
+        if not procs: return
+        
+        for p in (procs.get("vnc"), procs.get("xvfb")):
+            if p and p.poll() is None:
+                p.terminate()
+                try:
+                    p.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    p.kill()
 
     def get_display_env(self, instance_id):
         display_num = self._allocated.get(instance_id)

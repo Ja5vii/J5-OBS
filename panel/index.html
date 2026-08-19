@@ -184,9 +184,14 @@
                                 <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2">
                                     <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
                                 </button>
-                                <button @click="showGuide(inst)" class="mobile-btn col-span-2 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2">
-                                    <i data-lucide="book-open" class="w-4 h-4"></i> Guia de Conexion
-                                </button>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2">
+                                        <i data-lucide="book-open" class="w-4 h-4"></i> Info
+                                    </button>
+                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id" target="_blank" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2 flex justify-center items-center gap-2">
+                                        <i data-lucide="monitor" class="w-4 h-4"></i> VNC
+                                    </a>
+                                </div>
                                 <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 absolute -top-12 right-0 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
