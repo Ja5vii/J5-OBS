@@ -415,16 +415,17 @@
                         <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="wifi" class="text-indigo-400"></i> Como emitir hacia aqui</h3>
                         <button @click="showGuideModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="space-y-6">
+                    <div class="space-y-4">
                         <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                            <p class="text-sm text-indigo-200 mb-2 font-medium">1. URL del Servidor</p>
+                            <p class="text-sm text-indigo-200 mb-2 font-medium">URL Completa (Moblin / IRL)</p>
                             <div class="flex items-center gap-2">
-                                <code class="flex-1 bg-black/50 p-2 rounded text-indigo-400 text-sm break-all">rtmp://{{ window.location.hostname }}:1935/live</code>
-                                <button @click="copyText('rtmp://' + window.location.hostname + ':1935/live')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                                <code class="flex-1 bg-black/50 p-2 rounded text-indigo-400 text-xs break-all">rtmp://{{ window.location.hostname }}:1935/live/{{ activeInstance.connection_id }}</code>
+                                <button @click="copyText('rtmp://' + window.location.hostname + ':1935/live/' + activeInstance.connection_id)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
                             </div>
+                            <p class="text-xs text-slate-400 mt-2">Copia y pega esta URL entera en Moblin.</p>
                         </div>
                         <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-                            <p class="text-sm text-rose-200 mb-2 font-medium">2. Clave de Transmision</p>
+                            <p class="text-sm text-rose-200 mb-2 font-medium">Clave Suelta (PC / OBS)</p>
                             <div class="flex items-center gap-2">
                                 <code class="flex-1 bg-black/50 p-2 rounded text-rose-400 text-sm">
                                     {{ showKey ? activeInstance.connection_id : '••••••••••••••••••••' }}
