@@ -155,6 +155,29 @@ class ProcessManager:
         self._processes[instance_id] = {"process": proc, "log_file": log_fh}
         await self.manager.db.update_instance(instance_id, pid=proc.pid, status="ONLINE")
         self.logger.info(f"{instance_id} started (PID: {proc.pid})")
+        import asyncio
+        asyncio.create_task(self._force_start_stream(instance_id, inst.get("websocket_port"), inst.get("ws_password", "")))
+
+    async def _force_start_stream(self, instance_id, ws_port, ws_password):
+        import asyncio
+        await asyncio.sleep(5)
+        try:
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(('127.0.0.1', ws_port)) != 0:
+                    self.logger.error(f"{instance_id} OBS WebSocket not reachable to force stream.")
+                    return
+            import obsws_python as obsws
+            client = obsws.ReqClient(host='127.0.0.1', port=ws_port, password=ws_password, timeout=3)
+            res = client.get_stream_status()
+            if not getattr(res, 'output_active', False):
+                self.logger.info(f"{instance_id} Stream not active. Forcing StartStream via WebSocket...")
+                client.start_stream()
+                self.logger.info(f"{instance_id} StartStream command sent successfully via WS.")
+            else:
+                self.logger.info(f"{instance_id} Stream is already active.")
+        except Exception as e:
+            self.logger.error(f"{instance_id} WS StartStream FAILED: {e}")
 
     async def stop_instance(self, instance_id):
         inst = await self.manager.db.get_instance(instance_id)
@@ -204,9 +227,13 @@ class ProcessManager:
         profile_path = os.path.join(profile_dir, profile_name)
         os.makedirs(profile_path, exist_ok=True)
         basic_ini = os.path.join(profile_path, "basic.ini")
-        if not os.path.exists(basic_ini):
-            with open(basic_ini, "w") as f:
-                f.write(f"[General]\nName={instance_id}\n[Output]\nFilenameFormatting=%CCYY-%MM-%DD %hh-%mm-%ss\n")
+        # Always overwrite basic.ini to ensure x264 software encoder is forced
+        with open(basic_ini, "w") as f:
+            f.write(f"[General]\nName={instance_id}\n")
+            f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\n")
+            f.write("[SimpleOutput]\nVBitrate=3000\nStreamEncoder=x264\nRecEncoder=x264\n")
+            f.write("[Output]\nMode=Simple\n")
+            f.write("[AdvOut]\nEncoder=obs_x264\n")
         
         rtmp_url = inst_data.get("rtmp_url")
         rtmp_key = inst_data.get("rtmp_key")
