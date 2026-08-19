@@ -141,6 +141,16 @@ class Database:
             )
             async with self.pool.acquire() as conn:
                 await conn.execute(SCHEMA)
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN platform VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN rtmp_url VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN rtmp_key VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN connection_id VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN auto_stop BOOLEAN DEFAULT true;")
+                except Exception: pass
                 await self._seed_platforms(conn)
                 await self._seed_roles_and_admin(conn)
         except Exception as e:
