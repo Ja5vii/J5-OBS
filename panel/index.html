@@ -460,6 +460,9 @@
     </div>
 
     <script>
+        window.addEventListener('error', function(e) {
+            alert('JS Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+        });
         const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
 
         createApp({
