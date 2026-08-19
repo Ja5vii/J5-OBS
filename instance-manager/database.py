@@ -47,6 +47,10 @@ CREATE TABLE IF NOT EXISTS instances (
     scene_collection VARCHAR(255),
     auto_stop BOOLEAN DEFAULT true,
     restart_count INTEGER DEFAULT 0,
+    platform VARCHAR(255),
+    rtmp_url VARCHAR(255),
+    rtmp_key VARCHAR(255),
+    connection_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

@@ -69,6 +69,23 @@ def require_admin(handler):
     return wrapper
 
 
+@web.middleware
+async def error_middleware(request, handler):
+    try:
+        response = await handler(request)
+        if response.status == 404 and response.content_type != 'application/json':
+            return web.json_response({"error": "Not Found"}, status=404)
+        return response
+    except web.HTTPException as ex:
+        if ex.status == 404:
+            return web.json_response({"error": "Route not found"}, status=404)
+        raise
+    except Exception as e:
+        import traceback
+        err = traceback.format_exc()
+        print(f"API Error: {err}")
+        return web.json_response({"error": f"Internal Server Error: {str(e)}"}, status=500)
+
 def create_api_app(manager):
     app = web.Application(middlewares=[], client_max_size=1048576)
     limiter = RateLimiter(manager.config.get()["security"]["rate_limit_per_minute"])
@@ -368,11 +385,17 @@ def create_api_app(manager):
             username = request["user"].get("username", "admin")
             updates["connection_id"] = f"j5_{username}_{secrets.token_hex(4)}"
 
-        if updates:
-            await manager.db.update_instance(request.match_info["id"], **updates)
-            await manager.db.log_audit_event(request["user"]["id"], "UPDATE_CONNECTION", request.match_info["id"], updates)
-
-        return web.json_response(dumps=custom_dumps, data=await manager.db.get_instance(request.match_info["id"]))
+        try:
+            if updates:
+                await manager.db.update_instance(request.match_info["id"], **updates)
+                await manager.db.log_audit_event(request["user"]["id"], "UPDATE_CONNECTION", request.match_info["id"], updates)
+    
+            return web.json_response(dumps=custom_dumps, data=await manager.db.get_instance(request.match_info["id"]))
+        except Exception as e:
+            import traceback
+            err = traceback.format_exc()
+            manager.logger.error(f"update_connection crashed: {err}")
+            return web.json_response(dumps=custom_dumps, data={"error": str(err)}, status=500)
 
     @auth
     async def manager_status(request):
