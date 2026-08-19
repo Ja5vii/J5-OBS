@@ -106,7 +106,7 @@
                 
                 <div class="p-4 border-t border-slate-800 flex items-center gap-3">
                     <div class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
-                        {{ (user && user.username) ? user.username.charAt(0).toUpperCase() }}
+                        {{ (user && user.username) ? user.username.charAt(0).toUpperCase() : "" }}
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <p class="text-sm font-bold truncate">{{ user ? user.username : "" }}</p>
