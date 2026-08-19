@@ -518,7 +518,7 @@
                 const updateProfile = async () => {
                     try {
                         if(!profileForm.value.password) throw new Error('Escribe la nueva contrasena');
-                        const res = await fetch('/api/users/me', { method: 'POST', headers: headers(), body: JSON.stringify(profileForm.value) });
+                        const res = await fetch('/api/users/me', { method: 'PUT', headers: headers(), body: JSON.stringify(profileForm.value) });
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || 'Error cambiando contrasena');
                         profileForm.value.password = '';
