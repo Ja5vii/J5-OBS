@@ -48,12 +48,18 @@ class DisplayManager:
         import time
         time.sleep(0.5)
         vnc_port = str(5900 + display_num)
-        vnc_proc = subprocess.Popen(
-            ["x11vnc", "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+
+        vnc_proc = None
+        try:
+            vnc_proc = subprocess.Popen(
+                ["x11vnc", "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except FileNotFoundError:
+            pass # x11vnc not installed
         self._xvfb_processes[instance_id] = {"xvfb": proc, "vnc": vnc_proc}
+
 
 
     def stop_xvfb(self, instance_id):
