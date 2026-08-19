@@ -99,7 +99,10 @@
                         <i data-lucide="shield-check" class="w-5 h-5"></i> Global Branding
                     </button>
                     <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'users' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
-                        <i data-lucide="users" class="w-5 h-5"></i> Usuarios
+                        <i data-lucide="users" class="w-5 h-5"></i> <span class="font-medium">Usuarios</span>
+                    </button>
+                    <button @click="adminTab = 'profile'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'profile' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                        <i data-lucide="user-cog" class="w-5 h-5"></i> <span class="font-medium">Mi Perfil</span>
                     </button>
                 </nav>
 
@@ -123,6 +126,27 @@
 
             <!-- MAIN CONTENT -->
             <div class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+                <!-- VISTA: PERFIL -->
+                <div v-if="adminTab === 'profile'" class="animate-fade-in max-w-lg mx-auto mt-10">
+                    <div class="glass p-6 rounded-2xl border border-slate-800/50">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl">
+                                {{ (user && user.username) ? user.username.charAt(0).toUpperCase() : "" }}
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-white">{{ user ? user.username : "" }}</h2>
+                                <p class="text-sm text-slate-400 capitalize">{{ user ? user.role : "" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <h3 class="font-medium text-slate-300">Cambiar Contrasena</h3>
+                            <input v-model="profileForm.password" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Nueva Contrasena">
+                            <button @click="updateProfile" class="w-full mobile-btn mobile-btn-primary">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- VISTA: INSTANCIAS -->
                 <div v-if="adminTab === 'instances'" class="max-w-7xl mx-auto space-y-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -344,6 +368,10 @@
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Usuarios</span>
                 </button>
+                <button @click="adminTab = 'profile'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'profile' ? 'text-indigo-400' : 'text-slate-500']">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-medium">Perfil</span>
+                </button>
             </div>
         </div>
 
@@ -486,6 +514,17 @@
                 const form = ref({ name: '', template: '', owner_id: '' });
                 const showUserModal = ref(false);
                 const userForm = ref({ username: '', password: '', role: 'user' });
+                const profileForm = ref({ password: '' });
+                const updateProfile = async () => {
+                    try {
+                        if(!profileForm.value.password) throw new Error('Escribe la nueva contrasena');
+                        const res = await fetch('/api/users/me', { method: 'POST', headers: headers(), body: JSON.stringify(profileForm.value) });
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || 'Error cambiando contrasena');
+                        profileForm.value.password = '';
+                        Toast.fire({ icon: 'success', title: 'Contrasena actualizada' });
+                    } catch (e) { Toast.fire({ icon: 'error', title: e.message }); }
+                };
 
                 const showWizardModal = ref(false);
                 const wizardStep = ref(1);
@@ -771,7 +810,7 @@
                     showLoginPassword, showCreatePassword,
                     authenticated, token, loading, error, user, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
-                    showCreateModal, form, showUserModal, userForm,
+                    showCreateModal, form, showUserModal, userForm, profileForm, updateProfile,
                     showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, window, onPlatformChange, platformRtmpUrl,
                     brandingConfig, logoPreview, logoFile, isPublishing, logoInput,
                     handleLogoSelect, handleLogoDrop,
