@@ -361,10 +361,9 @@ class ProcessManager:
                                         "restart_on_activate": True,
                                         "close_when_inactive": False,
                                         "clear_on_media_end": False,
-                                        "reconnect_delay_sec": 1,
-                                        "buffering_mb": 1,
-                                        "hw_decode": False,
-                                        "input_format": "live_flv"
+                                        "reconnect_delay_sec": 2,
+                                        "buffering_mb": 2,
+                                        "hw_decode": False
                                     },
                                     "versioned_id": "ffmpeg_source"
                                 }
