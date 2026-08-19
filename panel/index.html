@@ -125,7 +125,7 @@
             </div>
 
             <!-- MAIN CONTENT -->
-            <div class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+            <div class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto pb-28 md:pb-8">
                 <!-- VISTA: PERFIL -->
                 <div v-if="adminTab === 'profile'" class="animate-fade-in max-w-lg mx-auto mt-10">
                     <div class="glass p-6 rounded-2xl border border-slate-800/50">
@@ -160,33 +160,38 @@
                     </div>
 
                     <transition-group name="list" tag="div" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <div v-for="inst in instances" :key="inst.instance_id" class="glass-card rounded-2xl p-5 relative group overflow-hidden flex flex-col">
-                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div v-for="inst in instances" :key="inst.instance_id" class="glass-card rounded-2xl p-5 relative group overflow-visible flex flex-col">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                             
+                            <!-- Header with delete button -->
                             <div class="flex justify-between items-start mb-4 relative z-10">
-                                <div>
-                                    <h3 class="font-bold text-lg flex items-center gap-2">
-                                        {{ inst.name }}
-                                    </h3>
-                                    <span class="text-xs font-mono text-slate-500">ID: {{ inst.instance_id.substring(0,8) }}...</span>
+                                <div class="flex-1 min-w-0 pr-2">
+                                    <h3 class="font-bold text-lg truncate">{{ inst.name }}</h3>
+                                    <span class="text-xs font-mono text-slate-500">{{ inst.instance_id.substring(0,8) }}...</span>
                                 </div>
-                                <span :class="['px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5', statusBadgeClass(inst.status)]">
-                                    <div :class="['w-1.5 h-1.5 rounded-full', inst.status === 'ONLINE' || inst.status === 'STREAMING' ? 'bg-current animate-pulse' : 'bg-current']"></div>
-                                    {{ inst.status }}
-                                </span>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <span :class="['px-2 py-1 rounded-full text-xs font-bold border flex items-center gap-1', statusBadgeClass(inst.status)]">
+                                        <div :class="['w-1.5 h-1.5 rounded-full', inst.status === 'ONLINE' || inst.status === 'STREAMING' ? 'bg-current animate-pulse' : 'bg-current']"></div>
+                                        {{ inst.status }}
+                                    </span>
+                                    <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
                             </div>
 
+                            <!-- Stats -->
                             <div v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" class="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-900/50 rounded-xl">
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-0.5">CPU (Sis)</p>
+                                    <p class="text-xs text-slate-400 mb-0.5">CPU</p>
                                     <p :class="['font-medium', cpuColor(inst.instance_id)]">{{ getStat(inst.instance_id, 'cpu_percent') }}%</p>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-0.5">RAM (Sis)</p>
+                                    <p class="text-xs text-slate-400 mb-0.5">RAM</p>
                                     <p class="font-medium text-slate-200">{{ getStat(inst.instance_id, 'ram_mb') }} MB</p>
                                 </div>
                                 <div v-if="stats[inst.instance_id] && stats[inst.instance_id].obs_fps !== undefined">
-                                    <p class="text-xs text-slate-400 mb-0.5">Enviado (Total)</p>
+                                    <p class="text-xs text-slate-400 mb-0.5">Enviado</p>
                                     <p class="font-medium text-indigo-300">{{ Math.round((stats[inst.instance_id].stream_bytes || 0) / 1048576) }} MB</p>
                                 </div>
                                 <div v-if="stats[inst.instance_id] && stats[inst.instance_id].obs_fps !== undefined">
@@ -198,27 +203,29 @@
                                 Servidor Apagado
                             </div>
 
-                            <div class="mt-auto pt-4 border-t border-slate-800/50 grid grid-cols-2 gap-2 relative z-10">
-                                <button v-if="inst.status === 'STANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2">
-                                    <i data-lucide="play" class="w-4 h-4"></i> Iniciar
-                                </button>
-                                <button v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2">
-                                    <i data-lucide="square" class="w-4 h-4"></i> Detener
-                                </button>
-                                <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2">
-                                    <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
-                                </button>
-                                <div class="grid grid-cols-2 gap-2 col-span-2 mt-1">
-                                    <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2.5">
-                                        <i data-lucide="book-open" class="w-4 h-4"></i> Conectar Moblin
+                            <!-- Action buttons - completely rewritten for mobile -->
+                            <div class="mt-auto relative z-10 space-y-2">
+                                <!-- Row 1: Start/Stop + Destino -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button v-if="inst.status === 'STANDBY' || inst.status === 'ERROR'" @click="executeAction(inst.instance_id, 'start')" class="mobile-btn bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 py-2.5 text-sm">
+                                        <i data-lucide="play" class="w-4 h-4"></i> Iniciar
                                     </button>
-                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id + '&token=' + (token || '')" target="_blank" class="mobile-btn bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 py-2.5 flex justify-center items-center gap-2">
-                                        <i data-lucide="monitor" class="w-4 h-4"></i> Pantalla VNC
+                                    <button v-if="inst.status === 'ONLINE' || inst.status === 'STREAMING'" @click="executeAction(inst.instance_id, 'stop')" class="mobile-btn bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 py-2.5 text-sm">
+                                        <i data-lucide="square" class="w-4 h-4"></i> Detener
+                                    </button>
+                                    <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2.5 text-sm">
+                                        <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
+                                    </button>
+                                </div>
+                                <!-- Row 2: Moblin + VNC -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2.5 text-sm">
+                                        <i data-lucide="wifi" class="w-4 h-4"></i> Moblin
+                                    </button>
+                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id + '&token=' + (token || '')" target="_blank" class="mobile-btn bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 py-2.5 text-sm flex justify-center items-center gap-2 no-underline">
+                                        <i data-lucide="monitor" class="w-4 h-4"></i> VNC
                                     </a>
                                 </div>
-                                <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 absolute -top-12 right-0 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
                             </div>
                         </div>
                     </transition-group>
