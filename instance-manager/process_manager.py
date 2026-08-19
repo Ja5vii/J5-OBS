@@ -109,6 +109,14 @@ class ProcessManager:
         profile_dir = os.path.join(inst_dir, "config", "obs-studio", "basic", "profiles")
         scene_dir = os.path.join(inst_dir, "config", "obs-studio", "basic", "scenes")
         log_dir = os.path.join(inst_dir, "logs")
+        global_dir = os.path.join(inst_dir, "config", "obs-studio")
+        os.makedirs(global_dir, exist_ok=True)
+        with open(os.path.join(global_dir, "global.ini"), "w") as f:
+            f.write(f"[OBSWebSocket]
+ServerPort={inst.get('websocket_port')}
+ServerPassword={inst.get('ws_password', '')}
+ServerEnabled=true
+")
         self._write_obs_config(instance_id, profile_dir, scene_dir, inst)
         self.manager.display_manager.start_xvfb(instance_id)
         display_env = self.manager.display_manager.get_display_env(instance_id)
@@ -124,6 +132,8 @@ class ProcessManager:
             "--profile", profile_name,
             "--collection", inst.get("scene_collection", "Main"),
             "--scene", "Main",
+            "--websocket_port", str(inst.get("websocket_port", 4455)),
+            "--websocket_password", inst.get("ws_password", ""),
             "--startstreaming",
         ]
         env = os.environ.copy()
