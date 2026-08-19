@@ -43,7 +43,13 @@ class InstanceManager:
         self.logger.info("J5 OBS Instance Manager starting...")
         
         try:
-            subprocess.Popen(["nginx", "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")])
+            # Ensure directories exist
+            os.makedirs(os.path.join(self.base_dir, "j5-obs", "logs"), exist_ok=True)
+            subprocess.Popen([
+                "nginx",
+                "-e", os.path.join(self.base_dir, "j5-obs", "logs", "nginx-error.log"),
+                "-c", os.path.join(self.base_dir, "instance-manager", "nginx.conf")
+            ])
             self.logger.info("NGINX RTMP Ingest started")
         except Exception as e:
             self.logger.error(f"Failed to start NGINX: {e}")
