@@ -141,7 +141,7 @@ class ProcessManager:
         env["OBS_WEBSOCKET_SERVER_PASSWORD"] = inst.get("ws_password", "")
         env["OBS_WEBSOCKET_AUTO_START"] = "true"
         env["OBS_STUDIO_DISABLE_SOURCE_CHROME"] = "1"
-        env["OBS_DISABLE_PLUGINS"] = "1"
+        # env["OBS_DISABLE_PLUGINS"] = "1"
         log_fh = open(os.path.join(log_dir, "obs.log"), "a")
         popen_kw = {"stdout": log_fh, "stderr": log_fh, "env": env, "cwd": inst_dir}
         if self._is_unix:
@@ -159,13 +159,22 @@ class ProcessManager:
 
     async def _force_start_stream(self, instance_id, ws_port, ws_password):
         import asyncio
-        await asyncio.sleep(5)
-        try:
-            import socket
+        import socket
+        
+        # Retry for up to 30 seconds
+        connected = False
+        for _ in range(15):
+            await asyncio.sleep(2)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                if s.connect_ex(('127.0.0.1', ws_port)) != 0:
-                    self.logger.error(f"{instance_id} OBS WebSocket not reachable to force stream.")
-                    return
+                if s.connect_ex(('127.0.0.1', ws_port)) == 0:
+                    connected = True
+                    break
+                    
+        if not connected:
+            self.logger.error(f"{instance_id} OBS WebSocket not reachable after 30 seconds.")
+            return
+            
+        try:
             import obsws_python as obsws
             client = obsws.ReqClient(host='127.0.0.1', port=ws_port, password=ws_password, timeout=3)
             res = client.get_stream_status()
