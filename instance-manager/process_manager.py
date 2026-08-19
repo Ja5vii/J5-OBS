@@ -152,7 +152,14 @@ class ProcessManager:
         env["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
         runtime_dir = os.path.join(inst_dir, "runtime")
         os.makedirs(runtime_dir, exist_ok=True)
+        try:
+            os.chmod(runtime_dir, 0o700)
+        except Exception:
+            pass
         env["XDG_RUNTIME_DIR"] = runtime_dir
+        env["XDG_CONFIG_HOME"] = os.path.join(inst_dir, "config")
+        env["XDG_DATA_HOME"] = os.path.join(inst_dir, "data")
+        os.makedirs(os.path.join(inst_dir, "data"), exist_ok=True)
         env.update(display_env)
         if pulse_socket:
             env["PULSE_SERVER"] = f"unix:{pulse_socket}"
