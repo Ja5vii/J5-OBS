@@ -2,8 +2,18 @@ import asyncio
 import time
 import psutil
 
+import socket
 import obsws_python as obsws
 def _fetch_obs_stats(port, password):
+    # Check if port is open to avoid obsws_python traceback spam
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.1)
+        if s.connect_ex(('127.0.0.1', port)) != 0:
+            return {"obs_error": "Connection refused"}
+    
+    import logging
+    logging.getLogger("obsws_python").setLevel(logging.CRITICAL)
+    
     try:
         client = obsws.ReqClient(host='127.0.0.1', port=port, password=password, timeout=1)
         stats = client.get_stats()

@@ -49,7 +49,7 @@ class DisplayManager:
         time.sleep(0.5)
         vnc_port = str(5900 + display_num)
         vnc_proc = subprocess.Popen(
-            ["x11vnc", "-display", display_str, "-bg", "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+            ["x11vnc", "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
