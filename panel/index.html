@@ -208,12 +208,12 @@
                                 <button @click="showWizard(inst)" class="mobile-btn bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 py-2">
                                     <i data-lucide="settings-2" class="w-4 h-4"></i> Destino
                                 </button>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2">
-                                        <i data-lucide="book-open" class="w-4 h-4"></i> Info
+                                <div class="grid grid-cols-2 gap-2 col-span-2 mt-1">
+                                    <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2.5">
+                                        <i data-lucide="book-open" class="w-4 h-4"></i> Conectar Moblin
                                     </button>
-                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id + '&token=' + (token || '')" target="_blank" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2 flex justify-center items-center gap-2">
-                                        <i data-lucide="monitor" class="w-4 h-4"></i> VNC
+                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id + '&token=' + (token || '')" target="_blank" class="mobile-btn bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 py-2.5 flex justify-center items-center gap-2">
+                                        <i data-lucide="monitor" class="w-4 h-4"></i> Pantalla VNC
                                     </a>
                                 </div>
                                 <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-2 absolute -top-12 right-0 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
@@ -379,7 +379,7 @@
         <transition name="modal">
             <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showCreateModal = false"></div>
-                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                <div class="glass w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 relative z-10">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Nuevo Servidor OBS</h3>
                         <button @click="showCreateModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -399,7 +399,7 @@
         <transition name="modal">
             <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showUserModal = false"></div>
-                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                <div class="glass w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 relative z-10">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Registrar Usuario</h3>
                         <button @click="showUserModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -427,7 +427,7 @@
         <transition name="modal">
             <div v-if="showWizardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showWizardModal = false"></div>
-                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                <div class="glass w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 relative z-10">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg">Destino ({{ activeInstance ? activeInstance.name : "" }})</h3>
                         <button @click="showWizardModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -456,7 +456,7 @@
         <transition name="modal">
             <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showGuideModal = false"></div>
-                <div class="glass w-full max-w-md rounded-2xl p-6 relative z-10">
+                <div class="glass w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 relative z-10">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="wifi" class="text-indigo-400"></i> Como emitir hacia aqui</h3>
                         <button @click="showGuideModal = false" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -679,7 +679,10 @@
 
                 const showGuide = (inst) => { activeInstance.value = inst; showKey.value = false; showGuideModal.value = true; nextTick(() => { if(window.lucide) lucide.createIcons(); }); };
                 const copyText = (txt) => { navigator.clipboard.writeText(txt); Toast.fire({ icon: 'success', title: 'Copiado al portapapeles!' }); };
-                const getMoblinLink = (id) => 'moblin://?' + JSON.stringify({ streams: [{ name: "J5-OBS", url: "rtmp://" + window.location.hostname + ":1935/live/" + id }] });
+                const getMoblinLink = (id) => {
+                    const obj = { streams: [{ name: "J5-OBS (" + (activeInstance.value ? activeInstance.value.name : id) + ")", url: "rtmp://" + window.location.hostname + ":1935/live/" + id }] };
+                    return "moblin://settings/import?settings=" + encodeURIComponent(JSON.stringify(obj));
+                };
 
                 const createInstance = async () => { 
                     try {

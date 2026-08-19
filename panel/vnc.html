@@ -2,26 +2,95 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J5 OBS - Control VNC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>J5 OBS - Control VNC Móvil</title>
     <style>
-        body { margin: 0; background-color: #0f172a; height: 100vh; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif; color: white; }
-        #top_bar { background-color: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-        #status_text { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        #screen { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #020617; }
-        canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: bold; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; 
+            background-color: #090d16; 
+            height: 100vh; 
+            height: 100dvh; 
+            display: flex; 
+            flex-direction: column; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            color: white; 
+            overflow: hidden;
+        }
+        #top_bar { 
+            background-color: #111827; 
+            padding: 8px 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #1f2937;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+        #status_text { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #screen { 
+            flex: 1; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            background: #000; 
+            touch-action: none;
+            position: relative;
+        }
+        canvas { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            image-rendering: auto;
+        }
+        .badge { padding: 3px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .badge-connecting { background: rgba(234, 179, 8, 0.2); color: #facc15; }
         .badge-connected { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .badge-error { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
-        .btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
-        .btn:hover { background: #475569; }
+        .btn-group { display: flex; gap: 6px; align-items: center; }
+        .btn { 
+            background: #1f2937; 
+            color: #e5e7eb; 
+            border: 1px solid #374151; 
+            padding: 6px 10px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn:active { background: #374151; transform: scale(0.96); }
+        .btn-primary { background: #4f46e5; border-color: #6366f1; color: white; }
+        
+        /* Floating mobile control bar */
+        #floating_bar {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 9999px;
+            display: flex;
+            gap: 8px;
+            z-index: 40;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
     </style>
     <!-- Load noVNC from CDN -->
     <script type="module">
         import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
         
         let rfb = null;
+        let scaleMode = true;
         
         function connect() {
             const params = new URLSearchParams(window.location.search);
@@ -34,13 +103,13 @@
             if (!instId) {
                 statusBadge.className = 'badge badge-error';
                 statusBadge.innerText = 'ERROR';
-                statusText.innerText = 'No se proporcionó ID de instancia';
+                statusText.innerText = 'Sin ID de instancia';
                 return;
             }
             
             statusBadge.className = 'badge badge-connecting';
             statusBadge.innerText = 'CONECTANDO';
-            statusText.innerText = 'Conectando a ' + instId + '...';
+            statusText.innerText = instId;
             
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = protocol + '//' + window.location.host + '/api/instances/' + instId + '/vnc?token=' + encodeURIComponent(token);
@@ -53,17 +122,18 @@
                 rfb.addEventListener('connect', () => {
                     statusBadge.className = 'badge badge-connected';
                     statusBadge.innerText = 'ONLINE';
-                    statusText.innerText = 'Conectado a ' + instId;
+                    statusText.innerText = instId;
                 });
                 
                 rfb.addEventListener('disconnect', (e) => {
                     statusBadge.className = 'badge badge-error';
                     statusBadge.innerText = 'DESCONECTADO';
-                    statusText.innerText = e.detail.clean ? 'Sesión finalizada' : 'Conexión perdida (¿Está OBS online?)';
+                    statusText.innerText = e.detail.clean ? 'Sesión cerrada' : 'Reintentar (OBS offline)';
                 });
                 
                 rfb.scaleViewport = true;
                 rfb.resizeSession = true;
+                rfb.clipViewport = false;
             } catch (err) {
                 statusBadge.className = 'badge badge-error';
                 statusBadge.innerText = 'ERROR';
@@ -79,6 +149,21 @@
             connect();
         };
         
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        };
+
+        window.toggleScale = function() {
+            if (!rfb) return;
+            scaleMode = !scaleMode;
+            rfb.scaleViewport = scaleMode;
+            document.getElementById('scale_btn').innerText = scaleMode ? 'Ajustar' : '100%';
+        };
+        
         document.addEventListener('DOMContentLoaded', connect);
     </script>
 </head>
@@ -86,10 +171,19 @@
     <div id="top_bar">
         <div id="status_text">
             <span id="status_badge" class="badge badge-connecting">INICIANDO</span>
-            <span id="status_text_detail">Cargando visor VNC...</span>
+            <span id="status_text_detail">Conectando...</span>
         </div>
-        <button class="btn" onclick="reconnectVNC()">Reconectar</button>
+        <div class="btn-group">
+            <button class="btn" onclick="toggleFullscreen()">⛶ Pantalla completa</button>
+            <button class="btn btn-primary" onclick="reconnectVNC()">🔄 Reconectar</button>
+        </div>
     </div>
-    <div id="screen"></div>
+    <div id="screen">
+        <div id="floating_bar">
+            <button class="btn" id="scale_btn" onclick="toggleScale()">Ajustar</button>
+            <button class="btn" onclick="reconnectVNC()">Refrescar</button>
+            <button class="btn btn-primary" onclick="toggleFullscreen()">Pantalla completa</button>
+        </div>
+    </div>
 </body>
 </html>
