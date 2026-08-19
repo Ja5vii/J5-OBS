@@ -128,6 +128,8 @@ class ProcessManager:
             "--startstreaming",
         ]
         env = os.environ.copy()
+        env["LIBGL_ALWAYS_SOFTWARE"] = "1"
+        env["GALLIUM_DRIVER"] = "llvmpipe"
         env.update(display_env)
         if pulse_socket:
             env["PULSE_SERVER"] = f"unix:{pulse_socket}"
@@ -135,9 +137,7 @@ class ProcessManager:
         env["OBS_WEBSOCKET_PORT"] = str(inst["websocket_port"])
         env["OBS_WEBSOCKET_SERVER_PASSWORD"] = inst.get("ws_password", "")
         env["OBS_WEBSOCKET_AUTO_START"] = "true"
-        env["QT_QPA_PLATFORM"] = "offscreen"
-        env["QT_XCB_GL_INTEGRATION"] = "none"
-        env["OBS_STUDIO_DISABLE_SOURCE_CHROME"] = "1"
+                        env["OBS_STUDIO_DISABLE_SOURCE_CHROME"] = "1"
         env["OBS_DISABLE_PLUGINS"] = "1"
         log_fh = open(os.path.join(log_dir, "obs.log"), "a")
         popen_kw = {"stdout": log_fh, "stderr": log_fh, "env": env, "cwd": inst_dir}

@@ -304,6 +304,8 @@ def create_api_app(manager):
             updates["platform"] = data["platform"]
         if "rtmp_key" in data:
             updates["rtmp_key"] = data["rtmp_key"]
+        if "auto_stop" in data:
+            updates["auto_stop"] = data["auto_stop"]
             
         # Optional custom RTMP
         if "rtmp_url" in data:
