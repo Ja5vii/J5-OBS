@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS instances (
     rtmp_url VARCHAR(255),
     rtmp_key VARCHAR(255),
     connection_id VARCHAR(255),
+    twitch_channel VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -150,6 +151,8 @@ class Database:
                 try: await conn.execute("ALTER TABLE instances ADD COLUMN connection_id VARCHAR(255);")
                 except Exception: pass
                 try: await conn.execute("ALTER TABLE instances ADD COLUMN auto_stop BOOLEAN DEFAULT true;")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN twitch_channel VARCHAR(255);")
                 except Exception: pass
                 await self._seed_platforms(conn)
                 await self._seed_roles_and_admin(conn)
@@ -328,6 +331,7 @@ class Database:
         platform = kwargs.pop("platform", None)
         rtmp_url = kwargs.pop("rtmp_url", None)
         rtmp_key = kwargs.pop("rtmp_key", None)
+        # Note: twitch_channel stays in kwargs so it directly updates instances.twitch_channel
         
         now = datetime.now(timezone.utc)
         kwargs["updated_at"] = now

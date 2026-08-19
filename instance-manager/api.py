@@ -147,7 +147,7 @@ def create_api_app(manager):
             manager.logger.info(f"Auto-starting instance {inst_id} due to incoming stream")
             import asyncio
             asyncio.create_task(manager.start_instance(inst_id))
-            asyncio.create_task(manager.twitch_bot.send_message("[J5-OBS] Moblin stream connected. Starting OBS..."))
+            asyncio.create_task(manager.twitch_bot.notify_instance(inst_id, "?? [J5-OBS] Moblin stream connected. Starting OBS..."))
             
         return web.Response(status=200)
 
@@ -170,7 +170,7 @@ def create_api_app(manager):
             manager.logger.info(f"Auto-stopping instance {inst_id} due to stream disconnect")
             import asyncio
             asyncio.create_task(manager.stop_instance(inst_id))
-            asyncio.create_task(manager.twitch_bot.send_message("[J5-OBS] Moblin disconnected. Stopping OBS..."))
+            asyncio.create_task(manager.twitch_bot.notify_instance(inst_id, "? [J5-OBS] Moblin disconnected. Stopping OBS..."))
             
         return web.Response(status=200)
 
@@ -374,6 +374,8 @@ def create_api_app(manager):
             updates["rtmp_key"] = data["rtmp_key"]
         if "auto_stop" in data:
             updates["auto_stop"] = data["auto_stop"]
+        if "twitch_channel" in data:
+            updates["twitch_channel"] = (data["twitch_channel"] or "").strip().lower().lstrip("#")
             
         # Optional custom RTMP
         if "rtmp_url" in data:
@@ -393,6 +395,8 @@ def create_api_app(manager):
             if updates:
                 await manager.db.update_instance(request.match_info["id"], **updates)
                 await manager.db.log_audit_event(request["user"]["id"], "UPDATE_CONNECTION", request.match_info["id"], updates)
+                import asyncio
+                asyncio.create_task(manager.twitch_bot.sync_channels())
     
             return web.json_response(dumps=custom_dumps, data=await manager.db.get_instance(request.match_info["id"]))
         except Exception as e:
