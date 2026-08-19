@@ -212,7 +212,7 @@
                                     <button @click="showGuide(inst)" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2">
                                         <i data-lucide="book-open" class="w-4 h-4"></i> Info
                                     </button>
-                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id" target="_blank" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2 flex justify-center items-center gap-2">
+                                    <a :href="'/panel/vnc.html?id=' + inst.instance_id + '&token=' + (token || '')" target="_blank" class="mobile-btn bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 mt-2 flex justify-center items-center gap-2">
                                         <i data-lucide="monitor" class="w-4 h-4"></i> VNC
                                     </a>
                                 </div>

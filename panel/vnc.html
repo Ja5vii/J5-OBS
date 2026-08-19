@@ -1,51 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>J5 OBS VNC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J5 OBS - Control VNC</title>
     <style>
-        body { margin: 0; background-color: #0f172a; height: 100vh; display: flex; flex-direction: column; font-family: sans-serif; color: white; }
-        #top_bar { background-color: #1e293b; padding: 10px; text-align: center; font-weight: bold; }
-        #screen { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        body { margin: 0; background-color: #0f172a; height: 100vh; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif; color: white; }
+        #top_bar { background-color: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        #status_text { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        #screen { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #020617; }
         canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: bold; }
+        .badge-connecting { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+        .badge-connected { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-error { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+        .btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn:hover { background: #475569; }
     </style>
     <!-- Load noVNC from CDN -->
     <script type="module">
         import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
         
-        document.addEventListener('DOMContentLoaded', () => {
+        let rfb = null;
+        
+        function connect() {
             const params = new URLSearchParams(window.location.search);
             const instId = params.get('id');
+            const token = params.get('token') || localStorage.getItem('j5_token') || '';
+            
+            const statusBadge = document.getElementById('status_badge');
+            const statusText = document.getElementById('status_text_detail');
+            
             if (!instId) {
-                document.getElementById('top_bar').innerText = 'No instance ID provided';
+                statusBadge.className = 'badge badge-error';
+                statusBadge.innerText = 'ERROR';
+                statusText.innerText = 'No se proporcionó ID de instancia';
                 return;
             }
             
-            document.getElementById('top_bar').innerText = 'Connecting to ' + instId + '...';
+            statusBadge.className = 'badge badge-connecting';
+            statusBadge.innerText = 'CONECTANDO';
+            statusText.innerText = 'Conectando a ' + instId + '...';
             
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const token = localStorage.getItem('j5_token') || '';
-            const wsUrl = protocol + '//' + window.location.host + '/api/instances/' + instId + '/vnc?token=' + token;
+            const wsUrl = protocol + '//' + window.location.host + '/api/instances/' + instId + '/vnc?token=' + encodeURIComponent(token);
             
-            const rfb = new RFB(document.getElementById('screen'), wsUrl, {
-                wsProtocols: ['binary']
-            });
-            
-            rfb.addEventListener('connect', () => {
-                document.getElementById('top_bar').innerText = 'Connected to ' + instId;
-            });
-            
-            rfb.addEventListener('disconnect', (e) => {
-                document.getElementById('top_bar').innerText = 'Disconnected: ' + (e.detail.clean ? 'Clean' : 'Error');
-            });
-            
-            rfb.scaleViewport = true;
-            rfb.resizeSession = true;
-        });
+            try {
+                rfb = new RFB(document.getElementById('screen'), wsUrl, {
+                    wsProtocols: ['binary']
+                });
+                
+                rfb.addEventListener('connect', () => {
+                    statusBadge.className = 'badge badge-connected';
+                    statusBadge.innerText = 'ONLINE';
+                    statusText.innerText = 'Conectado a ' + instId;
+                });
+                
+                rfb.addEventListener('disconnect', (e) => {
+                    statusBadge.className = 'badge badge-error';
+                    statusBadge.innerText = 'DESCONECTADO';
+                    statusText.innerText = e.detail.clean ? 'Sesión finalizada' : 'Conexión perdida (¿Está OBS online?)';
+                });
+                
+                rfb.scaleViewport = true;
+                rfb.resizeSession = true;
+            } catch (err) {
+                statusBadge.className = 'badge badge-error';
+                statusBadge.innerText = 'ERROR';
+                statusText.innerText = err.message;
+            }
+        }
+        
+        window.reconnectVNC = function() {
+            if (rfb) {
+                try { rfb.disconnect(); } catch (e) {}
+            }
+            document.getElementById('screen').innerHTML = '';
+            connect();
+        };
+        
+        document.addEventListener('DOMContentLoaded', connect);
     </script>
 </head>
 <body>
-    <div id="top_bar">Initializing...</div>
+    <div id="top_bar">
+        <div id="status_text">
+            <span id="status_badge" class="badge badge-connecting">INICIANDO</span>
+            <span id="status_text_detail">Cargando visor VNC...</span>
+        </div>
+        <button class="btn" onclick="reconnectVNC()">Reconectar</button>
+    </div>
     <div id="screen"></div>
 </body>
 </html>

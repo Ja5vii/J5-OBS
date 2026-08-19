@@ -555,29 +555,36 @@ def create_api_app(manager):
         # x11vnc should be listening on 5900 + display_num
         vnc_port = 5900 + display_num
         
-        ws = web.WebSocketResponse()
+        ws = web.WebSocketResponse(protocols=['binary', 'base64', ''])
         await ws.prepare(request)
         
         import asyncio
         try:
             reader, writer = await asyncio.open_connection('127.0.0.1', vnc_port)
         except Exception as e:
-            manager.logger.error(f"VNC Connection failed: {e}")
-            await ws.close()
+            manager.logger.error(f"VNC Connection failed to 127.0.0.1:{vnc_port}: {e}")
+            await ws.close(code=web.WSCloseCode.INTERNAL_ERROR, message=b"VNC server unreachable")
             return ws
             
         async def downstream():
             try:
                 while True:
-                    data = await reader.read(4096)
+                    data = await reader.read(8192)
                     if not data:
+                        break
+                    if ws.closed:
                         break
                     await ws.send_bytes(data)
             except Exception:
                 pass
             finally:
-                await ws.close()
-                writer.close()
+                if not ws.closed:
+                    await ws.close()
+                try:
+                    writer.close()
+                    await writer.wait_closed()
+                except Exception:
+                    pass
                 
         async def upstream():
             try:
@@ -585,12 +592,21 @@ def create_api_app(manager):
                     if msg.type == web.WSMsgType.BINARY:
                         writer.write(msg.data)
                         await writer.drain()
+                    elif msg.type == web.WSMsgType.TEXT:
+                        writer.write(msg.data.encode('utf-8'))
+                        await writer.drain()
+                    elif msg.type in (web.WSMsgType.CLOSE, web.WSMsgType.CLOSING, web.WSMsgType.CLOSED):
+                        break
             except Exception:
                 pass
             finally:
-                writer.close()
+                try:
+                    writer.close()
+                    await writer.wait_closed()
+                except Exception:
+                    pass
                 
-        await asyncio.gather(downstream(), upstream())
+        await asyncio.gather(downstream(), upstream(), return_exceptions=True)
         return ws
 
 
