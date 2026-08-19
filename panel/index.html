@@ -570,9 +570,15 @@
 
                 const viewLog = async (id) => {
                     try {
-                        const res = await fetch(`/api/instances/${id}/log`, { headers: headers() });
-                        if(!res.ok) throw new Error('No se pudo cargar el log');
-                        const text = await res.text();
+                        let res = await fetch(`/api/instances/${id}/crashes`, { headers: headers() });
+                        let text = '';
+                        if(res.ok) {
+                            text = "--- ULTIMO CRASH LOG ---\n" + await res.text();
+                        } else {
+                            res = await fetch(`/api/instances/${id}/log`, { headers: headers() });
+                            if(!res.ok) throw new Error('No se pudo cargar el log');
+                            text = "--- LOG NORMAL ---\n" + await res.text();
+                        }
                         Swal.fire({ title: 'OBS Log', html: `<pre class="text-left text-xs bg-slate-900 p-2 rounded overflow-auto max-h-96 text-emerald-400">${text.replace(/</g, '&lt;')}</pre>`, width: '80%', background: '#1e293b', color: '#fff' });
                     } catch(e) { Toast.fire({icon:'error',title:e.message}); }
                 };

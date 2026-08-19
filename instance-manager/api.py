@@ -256,6 +256,25 @@ def create_api_app(manager):
             return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=404)
 
     @auth
+    
+    @auth
+    async def get_obs_crashes(request):
+        if not await _check_access(request, request.match_info["id"]):
+            return web.Response(status=403)
+            
+        inst_id = request.match_info["id"]
+        crash_dir = os.path.join(manager.base_dir, "instances", inst_id, "config", "obs-studio", "crashes")
+        if not os.path.exists(crash_dir):
+            return web.Response(status=404, text="No crashes dir")
+            
+        files = sorted(os.listdir(crash_dir))
+        if not files:
+            return web.Response(status=404, text="No crash files")
+            
+        with open(os.path.join(crash_dir, files[-1]), 'r', encoding='utf-8', errors='ignore') as f:
+            return web.Response(text=f.read())
+
+    @auth
     async def get_obs_log(request):
         if not await _check_access(request, request.match_info["id"]):
             return web.Response(status=403)
@@ -479,6 +498,7 @@ def create_api_app(manager):
     app.router.add_patch("/api/instances/{id}/connection", update_connection)
     app.router.add_get("/api/instances/{id}/stats", get_stats)
     app.router.add_get("/api/instances/{id}/log", get_obs_log)
+    app.router.add_get("/api/instances/{id}/crashes", get_obs_crashes)
     app.router.add_get("/api/stats", get_all_stats)
     app.router.add_patch("/api/instances/{id}", update_config)
     app.router.add_get("/api/templates", list_templates)
