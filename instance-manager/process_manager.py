@@ -133,7 +133,8 @@ class ProcessManager:
         pulse_socket = None
         if self._is_unix:
             pulse_socket = self._start_pulseaudio(instance_id, inst_dir)
-        await asyncio.sleep(0.5)
+        # Give Moblin/NGINX 1.5s to establish RTMP publisher before OBS connects
+        await asyncio.sleep(1.5)
         profile_name = inst.get("profile", "default") or "default"
         obs_cmd = [
             "obs",
