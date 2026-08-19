@@ -51,6 +51,16 @@ class InstanceManager:
         await self.db.initialize()
         await self.port_manager.initialize()
         await self.display_manager.initialize()
+        
+        # Restore allocations from database
+        instances = await self.db.get_all_instances()
+        for inst in instances:
+            iid = inst["instance_id"]
+            if inst.get("websocket_port"):
+                self.port_manager._allocated[iid] = inst["websocket_port"]
+            if inst.get("display") is not None:
+                self.display_manager._allocated[iid] = inst["display"]
+                
         self.process_manager.initialize()
         self.health_manager.start()
         self.recovery_manager.start()
