@@ -137,14 +137,11 @@ class ProcessManager:
         profile_name = inst.get("profile", "default") or "default"
         obs_cmd = [
             "obs",
-            "--multiplatform",
-            "--portable",
             "--profile", profile_name,
-            "--collection", inst.get("scene_collection", "Main"),
+            "--collection", scene_collection,
             "--scene", "Main",
-            "--websocket_port", str(inst.get("websocket_port", 4455)),
-            "--websocket_password", inst.get("ws_password", ""),
             "--startstreaming",
+            "--disable-missing-files-check",
         ]
         env = os.environ.copy()
         env["LIBGL_ALWAYS_SOFTWARE"] = "1"
@@ -260,45 +257,58 @@ class ProcessManager:
         profile_name = inst_data.get("profile", "default") or "default"
         scene_collection = inst_data.get("scene_collection", "Main") or "Main"
         
-        # Write config to requested profile, default, and Untitled to guarantee OBS finds it
-        for p_name in set([profile_name, "default", "Untitled"]):
-            profile_path = os.path.join(profile_dir, p_name)
-            os.makedirs(profile_path, exist_ok=True)
-            basic_ini = os.path.join(profile_path, "basic.ini")
-            with open(basic_ini, "w") as f:
-                f.write(f"[General]\nName={instance_id}\n")
-                f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\n")
-                f.write("[SimpleOutput]\nVBitrate=3000\nStreamEncoder=x264\nRecEncoder=x264\n")
-                f.write("[Output]\nMode=Simple\n")
-                f.write("[AdvOut]\nEncoder=obs_x264\n")
-            
-            rtmp_url = inst_data.get("rtmp_url")
-            rtmp_key = inst_data.get("rtmp_key")
-            if rtmp_url and rtmp_key:
-                service_json = os.path.join(profile_path, "service.json")
-                with open(service_json, "w") as f:
-                    json.dump({
-                        "settings": {
-                            "key": rtmp_key,
-                            "server": rtmp_url,
-                            "service": "Custom"
-                        },
-                        "type": "rtmp_custom"
-                    }, f)
+        home_profiles = os.path.expanduser("~/.config/obs-studio/basic/profiles")
+        home_scenes = os.path.expanduser("~/.config/obs-studio/basic/scenes")
+        
+        profile_dirs = [profile_dir, home_profiles]
+        scene_dirs = [scene_dir, home_scenes]
+        
+        for p_dir in profile_dirs:
+            try:
+                for p_name in set([profile_name, "default", "Untitled"]):
+                    profile_path = os.path.join(p_dir, p_name)
+                    os.makedirs(profile_path, exist_ok=True)
+                    basic_ini = os.path.join(profile_path, "basic.ini")
+                    with open(basic_ini, "w") as f:
+                        f.write(f"[General]\nName={instance_id}\n")
+                        f.write("[Video]\nBaseCX=1920\nBaseCY=1080\nOutputCX=1920\nOutputCY=1080\nFPSCommon=30\n")
+                        f.write("[SimpleOutput]\nVBitrate=3000\nStreamEncoder=x264\nRecEncoder=x264\n")
+                        f.write("[Output]\nMode=Simple\n")
+                        f.write("[AdvOut]\nEncoder=obs_x264\n")
+                    
+                    rtmp_url = inst_data.get("rtmp_url")
+                    rtmp_key = inst_data.get("rtmp_key")
+                    if rtmp_url and rtmp_key:
+                        service_json = os.path.join(profile_path, "service.json")
+                        with open(service_json, "w") as f:
+                            json.dump({
+                                "settings": {
+                                    "key": rtmp_key,
+                                    "server": rtmp_url,
+                                    "service": "Custom"
+                                },
+                                "type": "rtmp_custom"
+                            }, f)
+            except Exception:
+                pass
 
         connection_id = inst_data.get("connection_id")
         if connection_id:
-            os.makedirs(scene_dir, exist_ok=True)
-            for sc_name in set([scene_collection, "Main", "Untitled"]):
-                main_scene_json = os.path.join(scene_dir, f"{sc_name}.json")
-                scene_data = {
-                    "current_scene": "Main",
-                    "current_program_scene": "Main",
-                    "name": sc_name,
-                    "scene_order": [{"name": "Main"}],
-                    "scenes": [{"id": "scene","name": "Main","settings": {"id_counter": 2,"items": [{"align": 5,"bounds": {"x": 1920.0, "y": 1080.0},"bounds_align": 0,"bounds_type": 2,"id": 1,"locked": False,"name": "Moblin_RTMP","pos": {"x": 0.0, "y": 0.0},"rot": 0.0,"scale": {"x": 1.0, "y": 1.0},"visible": True}]}}],
-                    "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"hw_decode": False,"clear_on_media_end": False,"restart_on_activate": True}}]
-                }
-                with open(main_scene_json, "w") as f:
-                    json.dump(scene_data, f)
+            for s_dir in scene_dirs:
+                try:
+                    os.makedirs(s_dir, exist_ok=True)
+                    for sc_name in set([scene_collection, "Main", "Untitled"]):
+                        main_scene_json = os.path.join(s_dir, f"{sc_name}.json")
+                        scene_data = {
+                            "current_scene": "Main",
+                            "current_program_scene": "Main",
+                            "name": sc_name,
+                            "scene_order": [{"name": "Main"}],
+                            "scenes": [{"id": "scene","name": "Main","settings": {"id_counter": 2,"items": [{"align": 5,"bounds": {"x": 1920.0, "y": 1080.0},"bounds_align": 0,"bounds_type": 2,"id": 1,"locked": False,"name": "Moblin_RTMP","pos": {"x": 0.0, "y": 0.0},"rot": 0.0,"scale": {"x": 1.0, "y": 1.0},"visible": True}]}}],
+                            "sources": [{"id": "ffmpeg_source","name": "Moblin_RTMP","settings": {"input": f"rtmp://127.0.0.1:1935/live/{connection_id}","is_local_file": False,"hw_decode": False,"clear_on_media_end": False,"restart_on_activate": True}}]
+                        }
+                        with open(main_scene_json, "w") as f:
+                            json.dump(scene_data, f)
+                except Exception:
+                    pass
 
