@@ -365,7 +365,8 @@ def create_api_app(manager):
         # Generate connection ID if it doesn't exist
         inst = await manager.db.get_instance(request.match_info["id"])
         if not inst.get("connection_id"):
-            updates["connection_id"] = f"j5_{request['user']['username']}_{secrets.token_hex(4)}"
+            username = request["user"].get("username", "admin")
+            updates["connection_id"] = f"j5_{username}_{secrets.token_hex(4)}"
 
         if updates:
             await manager.db.update_instance(request.match_info["id"], **updates)
