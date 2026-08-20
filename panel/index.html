@@ -586,7 +586,7 @@
                         <div class="lg:col-span-2 space-y-4">
                             <!-- Logo Upload -->
                             <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><app-icon name="image" class="text-indigo-400"></app-icon> Logotipo Obligatorio</h3>
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><app-icon name="image" class="w-5 h-5 text-indigo-400"></app-icon> Logotipo Obligatorio</h3>
                                 <div class="dropzone" @click="$refs.logoInput.click()" @dragover.prevent @drop.prevent="handleLogoDrop">
                                     <input type="file" ref="logoInput" class="hidden" accept="image/png, image/jpeg, image/gif" @change="handleLogoSelect">
                                     <div v-if="!logoPreview" class="flex flex-col items-center gap-3">
@@ -596,15 +596,15 @@
                                             <p class="text-xs text-slate-500 mt-1">PNG o GIF con transparencia (Max 2MB)</p>
                                         </div>
                                     </div>
-                                    <div v-else class="relative">
-                                        <img :src="logoPreview" class="max-h-32 mx-auto rounded-lg" alt="Logo preview">
-                                        <button @click.stop="logoPreview = null; logoFile = null" class="absolute -top-3 -right-3 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><app-icon name="x" class="w-4 h-4"></app-icon></button>
+                                    <div v-else class="relative inline-block">
+                                        <img :src="logoPreview" @error="logoPreview = null" class="max-h-28 max-w-full object-contain mx-auto rounded-lg" alt="Logo preview">
+                                        <button @click.stop="logoPreview = null; logoFile = null" class="absolute -top-3 -right-3 w-7 h-7 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><app-icon name="x" class="w-3.5 h-3.5"></app-icon></button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="glass-card rounded-2xl p-6">
-                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><app-icon name="layout" class="text-indigo-400"></app-icon> Configuracion de Layout</h3>
+                                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><app-icon name="layout" class="w-5 h-5 text-indigo-400"></app-icon> Configuracion de Layout</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="font-bold">Watermark Position</label>
