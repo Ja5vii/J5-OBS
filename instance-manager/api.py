@@ -424,6 +424,15 @@ def create_api_app(manager):
         return web.json_response(dumps=custom_dumps, data={"templates": list(manager._load_templates().values())})
         
     @auth
+    async def get_me(request):
+        u = request["user"]
+        return web.json_response(dumps=custom_dumps, data={
+            "id": u["id"],
+            "username": u["username"],
+            "role": u["role"]
+        })
+
+    @auth
     async def update_me(request):
         data = await request.json()
         updates = {}
@@ -585,6 +594,7 @@ def create_api_app(manager):
     app.router.add_get("/api/users", list_users)
     app.router.add_post("/api/users", create_user)
     app.router.add_delete("/api/users/{id}", delete_user)
+    app.router.add_get("/api/users/me", get_me)
     app.router.add_put("/api/users/me", update_me)
     
     app.router.add_get("/api/instances", list_instances)
