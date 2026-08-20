@@ -120,10 +120,10 @@
                     <button @click="adminTab = 'instances'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'instances' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
                         <i data-lucide="monitor-play" class="w-5 h-5"></i> Mis Servidores
                     </button>
-                    <button v-if="user.role === 'admin'" @click="adminTab = 'branding'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'branding' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                    <button v-if="isAdmin" @click="adminTab = 'branding'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'branding' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
                         <i data-lucide="shield-check" class="w-5 h-5"></i> Global Branding
                     </button>
-                    <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'users' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
+                    <button v-if="isAdmin" @click="adminTab = 'users'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'users' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
                         <i data-lucide="users" class="w-5 h-5"></i> <span class="font-medium">Usuarios</span>
                     </button>
                     <button @click="adminTab = 'profile'" :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors', adminTab === 'profile' ? 'bg-indigo-600/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200']">
@@ -179,7 +179,7 @@
                             <h2 class="text-2xl font-bold">Mis Servidores</h2>
                             <p class="text-slate-400 text-sm mt-1">Gestione sus nodos de OBS en tiempo real</p>
                         </div>
-                        <button v-if="user.role === 'admin'" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary w-full sm:w-auto">
+                        <button v-if="isAdmin" @click="showCreateModal = true" class="mobile-btn mobile-btn-primary w-full sm:w-auto">
                             <i data-lucide="plus" class="w-5 h-5"></i> Nuevo Servidor
                         </button>
                     </div>
@@ -199,7 +199,7 @@
                                         <div :class="['w-1.5 h-1.5 rounded-full', inst.status === 'ONLINE' || inst.status === 'STREAMING' ? 'bg-current animate-pulse' : 'bg-current']"></div>
                                         {{ inst.status }}
                                     </span>
-                                    <button v-if="user.role === 'admin'" @click="deleteInstance(inst.instance_id)" class="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
+                                    <button v-if="isAdmin" @click="deleteInstance(inst.instance_id)" class="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
                                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </div>
@@ -269,7 +269,7 @@
                                                 <option value="obs">🎬 OBS (con overlays)</option>
                                             </select>
                                         </div>
-                                        <div v-if="user.role === 'admin'" class="flex items-center justify-between">
+                                        <div v-if="isAdmin" class="flex items-center justify-between">
                                             <span class="text-xs text-slate-500">Destacado</span>
                                             <button @click="toggleFeatured(inst)" :class="['text-xs px-2 py-0.5 rounded font-bold', inst.featured ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-700 text-slate-400']">
                                                 {{ inst.featured ? '⭐ Featured' : 'No featured' }}
@@ -283,7 +283,7 @@
                 </div>
 
                 <!-- VISTA: BRANDING (ADMIN) -->
-                <div v-if="adminTab === 'branding' && user.role === 'admin'" class="max-w-4xl mx-auto space-y-6">
+                <div v-if="adminTab === 'branding' && isAdmin" class="max-w-4xl mx-auto space-y-6">
                     <div>
                         <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-check" class="text-indigo-400 w-6 h-6"></i> Global Branding Authority</h2>
                         <p class="text-slate-400 text-sm mt-1">Control maestro de diseno para todos los servidores (Nodos)</p>
@@ -367,7 +367,7 @@
                 </div>
 
                 <!-- VISTA: USUARIOS -->
-                <div v-if="adminTab === 'users' && user.role === 'admin'" class="max-w-4xl mx-auto space-y-6">
+                <div v-if="adminTab === 'users' && isAdmin" class="max-w-4xl mx-auto space-y-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-2xl font-bold">Gestion de Usuarios</h2>
@@ -400,7 +400,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-slate-400 text-sm">{{ new Date(u.created_at).toLocaleDateString() }}</td>
                                         <td class="px-6 py-4 text-right">
-                                            <button v-if="u.id !== user.id" @click="deleteUser(u.id)" class="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors">
+                                            <button v-if="user && user.id && u.id !== user.id" @click="deleteUser(u.id)" class="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors">
                                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                                             </button>
                                         </td>
@@ -418,11 +418,11 @@
                     <i data-lucide="monitor-play" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Servidores</span>
                 </button>
-                <button v-if="user.role === 'admin'" @click="adminTab = 'branding'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'branding' ? 'text-indigo-400' : 'text-slate-500']">
+                <button v-if="isAdmin" @click="adminTab = 'branding'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'branding' ? 'text-indigo-400' : 'text-slate-500']">
                     <i data-lucide="shield-check" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Branding</span>
                 </button>
-                <button v-if="user.role === 'admin'" @click="adminTab = 'users'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'users' ? 'text-indigo-400' : 'text-slate-500']">
+                <button v-if="isAdmin" @click="adminTab = 'users'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'users' ? 'text-indigo-400' : 'text-slate-500']">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Usuarios</span>
                 </button>
@@ -552,17 +552,19 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted, onUnmounted, nextTick } = Vue;
+        const { createApp, ref, computed, onMounted, onUnmounted, nextTick } = Vue;
 
         const app = createApp({
             updated() { this.$nextTick(() => { if(window.lucide) lucide.createIcons(); }); },
             setup() {
                 const currentHost = ref(window.location.hostname || 'localhost');
                 const authenticated = ref(false);
+                const user = ref({ id: '', username: '', role: 'user' });
+                const isAdmin = computed(() => !!(user.value && user.value.role === 'admin'));
                 const token = ref('');
                 const loading = ref(false);
                 const error = ref('');
-                const user = ref(null);
+                
                 const loginForm = ref({ username: '', password: '' });
                 const adminTab = ref('instances');
                 const instances = ref([]);
@@ -631,7 +633,7 @@
                         authenticated.value = true;
                         localStorage.setItem('j5_token', token.value);
                         fetchData();
-                        if(user.value.role === 'admin') fetchUsers();
+                        if(user.value && user.value.role === 'admin') fetchUsers();
                         pollInterval = setInterval(fetchStats, 3000);
                         nextTick(() => { if(window.lucide) lucide.createIcons(); });
                     } catch (e) { error.value = e.message; token.value = ''; localStorage.removeItem('j5_token'); } finally { loading.value = false; }
@@ -930,7 +932,7 @@
 
                 return {
                     showLoginPassword, showCreatePassword,
-                    authenticated, token, loading, error, user, loginForm, adminTab,
+                    authenticated, token, loading, error, user, isAdmin, loginForm, adminTab,
                     instances, stats, usersList, activeInstance,
                     showCreateModal, form, showUserModal, userForm, profileForm, updateProfile,
                     showWizardModal, wizardStep, wizardForm, showGuideModal, showKey, currentHost, onPlatformChange, platformRtmpUrl,
