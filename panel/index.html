@@ -1011,9 +1011,8 @@
                 const cpuColor = (id) => { const v = parseFloat(getStat(id, 'cpu_percent')); return v>80?'text-rose-400':(v>60?'text-amber-400':'text-emerald-400'); };
 
                 onMounted(() => { 
-                    const t = localStorage.getItem('j5_token'); 
+                    const t = safeStorage.getItem('j5_token'); 
                     if (t) { token.value = t; login(); } 
-                    
                 });
                 onUnmounted(() => { if (pollInterval) clearInterval(pollInterval); });
 
