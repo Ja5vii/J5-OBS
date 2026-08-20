@@ -663,6 +663,7 @@
                         authenticated.value = true;
                         localStorage.setItem('j5_token', token.value);
                         fetchData();
+                        fetchActiveBranding();
                         if(user.value && user.value.role === 'admin') fetchUsers();
                         pollInterval = setInterval(fetchStats, 3000);
                         
@@ -878,12 +879,30 @@
                 
                 const processLogoFile = (file) => {
                     if(file.size > 2 * 1024 * 1024) { Toast.fire({icon:'error', title:'Maximo 2MB'}); return; }
-                    const reader = new FileReader();
+                        const reader = new FileReader();
                     reader.onload = (e) => {
                         logoPreview.value = e.target.result;
                         logoFile.value = { filename: file.name, data: e.target.result };
                     };
                     reader.readAsDataURL(file);
+                };
+
+                const fetchActiveBranding = async () => {
+                    try {
+                        const res = await fetch('/api/branding/active');
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        if (data && data.config_json) {
+                            brandingConfig.value = { ...brandingConfig.value, ...data.config_json };
+                            if (data.config_json.logo_url) {
+                                logoPreview.value = data.config_json.logo_url;
+                            } else if (data.config_json.logo_filename) {
+                                logoPreview.value = '/branding_assets/' + data.config_json.logo_filename;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error fetching branding:', e);
+                    }
                 };
 
                 const publishBranding = async () => {
@@ -900,6 +919,7 @@
                             const uploadData = await uploadRes.json();
                             if(!uploadRes.ok) throw new Error(uploadData.error || 'Error subiendo logo');
                             finalConfig.logo_filename = uploadData.filename;
+                            finalConfig.logo_url = uploadData.url || ('/branding_assets/' + uploadData.filename);
                         }
 
                         Toast.fire({ icon: 'info', title: 'Generando paquete firmado...' });
@@ -912,6 +932,8 @@
                         const res = await fetch('/api/admin/branding', { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
                         if(!res.ok) throw new Error('Error al publicar branding');
                         Toast.fire({ icon: 'success', title: 'Branding Publicado Globalmente' });
+                        logoFile.value = null;
+                        await fetchActiveBranding();
                     } catch (e) { 
                         Toast.fire({ icon: 'error', title: e.message }); 
                     } finally {

@@ -447,9 +447,10 @@ class Database:
                 await conn.execute("UPDATE branding_versions SET is_active = false")
                 # Insert the new active one
                 import json
+                config_str = config_json if isinstance(config_json, str) else json.dumps(config_json)
                 await conn.execute(
                     "INSERT INTO branding_versions (id, version_tag, config_json, signature, is_active, published_at) VALUES ($1, $2, $3, $4, true, $5)",
-                    version_id, version_tag, json.dumps(config_json), signature, now
+                    version_id, version_tag, config_str, signature, now
                 )
 
     async def get_all_branding_versions(self):
