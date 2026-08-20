@@ -30,6 +30,9 @@
             --sal: env(safe-area-inset-left, 0px);
             --sar: env(safe-area-inset-right, 0px);
         }
+        [v-cloak] {
+            display: none !important;
+        }
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -317,7 +320,7 @@
     </style>
 </head>
 <body class="antialiased min-h-screen">
-    <div id="app">
+    <div id="app" v-cloak>
         <!-- PANTALLA DE LOGIN -->
         <div v-if="!authenticated" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style="background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 45%), radial-gradient(circle at 80% 80%, rgba(244, 63, 94, 0.15), transparent 45%);">
             
