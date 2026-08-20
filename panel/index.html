@@ -525,24 +525,24 @@
                         <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
                             <p class="text-sm text-indigo-200 mb-2 font-medium">URL Completa (Moblin / IRL)</p>
                             <div class="flex items-center gap-2">
-                                <code class="flex-1 bg-black/50 p-2 rounded text-indigo-400 text-xs break-all">rtmp://{{ currentHost }}:1935/live/{{ activeInstance.connection_id }}</code>
-                                <button @click="copyText('rtmp://' + currentHost + ':1935/live/' + activeInstance.connection_id)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><app-icon name="copy" class="w-4 h-4"></app-icon></button>
+                                <code class="flex-1 bg-black/50 p-2 rounded text-indigo-400 text-xs break-all">rtmp://{{ currentHost }}:1935/live/{{ activeInstance?.connection_id || '' }}</code>
+                                <button @click="copyText('rtmp://' + currentHost + ':1935/live/' + (activeInstance?.connection_id || ''))" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><app-icon name="copy" class="w-4 h-4"></app-icon></button>
                             </div>
                             <p class="text-xs text-slate-400 mt-2">Copia y pega esta URL entera en Moblin.</p>
                             <div class="flex gap-2">
-                                <button @click="viewLog(activeInstance.instance_id)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold text-white transition">Ver Log OBS</button>
+                                <button @click="viewLog(activeInstance?.instance_id)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold text-white transition">Ver Log OBS</button>
                                 <button @click="showWizard(activeInstance)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white transition">Cambiar Destino</button>
                             </div>
-                            <a :href="getMoblinLink(activeInstance.connection_id)" class="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white transition"><app-icon name="smartphone" class="w-4 h-4"></app-icon> Auto-Configurar en Moblin</a>
+                            <a :href="getMoblinLink(activeInstance?.connection_id || '')" class="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold text-white transition"><app-icon name="smartphone" class="w-4 h-4"></app-icon> Auto-Configurar en Moblin</a>
                         </div>
                         <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                             <p class="text-sm text-rose-200 mb-2 font-medium">Clave Suelta (PC / OBS)</p>
                             <div class="flex items-center gap-2">
                                 <code class="flex-1 bg-black/50 p-2 rounded text-rose-400 text-sm">
-                                    {{ showKey ? activeInstance.connection_id : '••••••••••••••••••••' }}
+                                    {{ (showKey && activeInstance?.connection_id) ? activeInstance.connection_id : '••••••••••••••••••••' }}
                                 </code>
                                 <button @click="showKey = !showKey" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><span v-if="showKey"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span v-else><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span></button>
-                                <button @click="copyText(activeInstance.connection_id)" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><app-icon name="copy" class="w-4 h-4"></app-icon></button>
+                                <button @click="copyText(activeInstance?.connection_id || '')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 transition"><app-icon name="copy" class="w-4 h-4"></app-icon></button>
                             </div>
                         </div>
                     </div>
@@ -603,7 +603,7 @@
                 const instances = ref([]);
                 const stats = ref({});
                 const usersList = ref([]);
-                const activeInstance = ref(null);
+                const activeInstance = ref({ instance_id: '', name: '', connection_id: '', status: 'STANDBY' });
                 let pollInterval = null;
 
                 const showCreateModal = ref(false);
