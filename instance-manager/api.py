@@ -97,7 +97,16 @@ def create_api_app(manager):
             return web.json_response(dumps=custom_dumps, data={"error": "Rate limit exceeded"}, status=429)
         return await handler(request)
 
+    @web.middleware
+    async def no_cache_headers(request, handler):
+        response = await handler(request)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
     app.middlewares.append(rate_limit)
+    app.middlewares.append(no_cache_headers)
     auth = require_auth(manager)
 
     async def login(request):
