@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J5 OBS &mdash; Multiview Global</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #000; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .topbar { background: #0f172a; border-bottom: 1px solid #1e293b; padding: 0 1rem; height: 48px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .logo { font-weight: 800; font-size: 0.9375rem; color: #818cf8; text-decoration: none; }
+        .layout-controls { display: flex; gap: 0.375rem; }
+        .layout-btn { padding: 0.25rem 0.625rem; border-radius: 6px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .layout-btn:hover, .layout-btn.active { background: #6366f1; border-color: #6366f1; color: white; }
+        .grid-container { flex: 1; overflow: hidden; display: grid; gap: 2px; background: #1e293b; }
+        .grid-1x1 { grid-template-columns: 1fr; }
+        .grid-2x2 { grid-template-columns: 1fr 1fr; }
+        .grid-3x3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .cell { background: #0a0f1a; position: relative; overflow: hidden; }
+        .cell iframe { width: 100%; height: 100%; border: none; }
+        .cell-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 1.5rem 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 700; pointer-events: none; }
+        .cell-empty { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; color: #1e293b; height: 100%; }
+        .cell-empty span { font-size: 2rem; }
+        .platform-tag { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.375rem; border-radius: 4px; }
+        .tag-twitch { background: #6441a5; }
+        .tag-kick { background: #53fc1a; color: #000; }
+        .tag-youtube { background: #ff0000; }
+        .tag-custom { background: #475569; }
+        @media (max-width: 768px) { .grid-3x3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .grid-2x2, .grid-3x3, .grid-4 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="/live" class="logo">&#128225; J5 OBS Multiview</a>
+        <div class="layout-controls">
+            <button class="layout-btn" onclick="setLayout(1)">1</button>
+            <button class="layout-btn active" onclick="setLayout(2)">2x2</button>
+            <button class="layout-btn" onclick="setLayout(3)">3x3</button>
+            <button class="layout-btn" onclick="setLayout(4)">4x</button>
+            <a href="/live" class="layout-btn" style="text-decoration:none">&larr; Directorio</a>
+        </div>
+    </div>
+    <div class="grid-container grid-2x2" id="grid"></div>
+
+    <script>
+        let streams = [];
+        let currentLayout = 2;
+
+        function getEmbedUrl(stream) {
+            const p = (stream.platform || '').toLowerCase();
+            const ch = stream.twitch_channel || stream.public_channel_name || '';
+            if (p.includes('twitch') && ch) {
+                return `https://player.twitch.tv/?channel=${ch}&parent=${location.hostname}&muted=true&autoplay=true`;
+            }
+            if (p.includes('kick') && ch) {
+                return `https://player.kick.com/${ch}?autoplay=true&muted=true`;
+            }
+            return null;
+        }
+
+        function getPlatformClass(platform) {
+            const p = (platform || '').toLowerCase();
+            if (p.includes('twitch')) return 'tag-twitch';
+            if (p.includes('kick')) return 'tag-kick';
+            if (p.includes('youtube')) return 'tag-youtube';
+            return 'tag-custom';
+        }
+
+        function setLayout(n) {
+            currentLayout = n;
+            const grid = document.getElementById('grid');
+            grid.className = `grid-container grid-${n === 1 ? '1x1' : n === 2 ? '2x2' : n === 3 ? '3x3' : '4'}`;
+            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCells();
+        }
+
+        function renderCells() {
+            const count = currentLayout === 1 ? 1 : currentLayout === 2 ? 4 : currentLayout === 3 ? 9 : 16;
+            const grid = document.getElementById('grid');
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                const s = streams[i];
+                if (!s) {
+                    html += `<div class="cell"><div class="cell-empty"><span>&#128250;</span><small>Sin stream</small></div></div>`;
+                } else {
+                    const embedUrl = getEmbedUrl(s);
+                    const name = s.public_channel_name || s.name || '?';
+                    const ptClass = getPlatformClass(s.platform);
+                    html += `<div class="cell">
+                        ${embedUrl ? `<iframe src="${embedUrl}" allowfullscreen></iframe>` : `<div class="cell-empty"><span>&#128250;</span><small>${name}</small></div>`}
+                        <div class="cell-label"><span class="platform-tag ${ptClass}">${s.platform || ''}</span> ${name}</div>
+                    </div>`;
+                }
+            }
+            grid.innerHTML = html;
+        }
+
+        async function load() {
+            try {
+                const res = await fetch('/api/public/live');
+                const data = await res.json();
+                streams = data.streams || [];
+                renderCells();
+            } catch (e) { console.error(e); }
+        }
+
+        load();
+        setInterval(load, 60000);
+    </script>
+</body>
+</html>

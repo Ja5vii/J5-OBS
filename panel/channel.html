@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J5 OBS &mdash; Canal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; }
+        .header { background: rgba(15,23,42,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 0.625rem; font-weight: 800; font-size: 1rem; text-decoration: none; color: white; }
+        .back-link { color: #64748b; text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.375rem; }
+        .back-link:hover { color: white; }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Player */
+        .player-wrapper { aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+        .player-wrapper iframe { width: 100%; height: 100%; border: none; }
+        .no-embed { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; height: 100%; color: #475569; }
+        .no-embed span { font-size: 4rem; }
+
+        /* Channel info */
+        .channel-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .channel-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 800; flex-shrink: 0; }
+        .channel-info h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .live-indicator { display: inline-flex; align-items: center; gap: 0.375rem; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 0.2rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .offline-indicator { display: inline-flex; align-items: center; gap: 0.375rem; background: rgba(100,116,139,0.15); border: 1px solid rgba(100,116,139,0.3); color: #64748b; padding: 0.2rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+        .platform-tag { padding: 0.2rem 0.625rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .tag-twitch { background: rgba(145,71,255,0.2); color: #a78bfa; }
+        .tag-kick { background: rgba(83,252,26,0.15); color: #86efac; }
+        .tag-youtube { background: rgba(255,0,0,0.15); color: #f87171; }
+        .tag-custom { background: rgba(100,116,139,0.2); color: #94a3b8; }
+        .channel-meta { color: #64748b; font-size: 0.875rem; margin-top: 0.375rem; }
+        .category-tag { display: inline-block; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; padding: 0.2rem 0.625rem; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; margin-top: 0.5rem; }
+
+        /* J5 badge */
+        .j5-badge-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+        .j5-badge { display: inline-flex; align-items: center; gap: 0.375rem; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 700; text-decoration: none; }
+        .open-platform-btn { padding: 0.625rem 1.25rem; background: #6366f1; color: white; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.875rem; transition: background 0.2s; }
+        .open-platform-btn:hover { background: #4f46e5; }
+
+        /* Error */
+        .error-state { text-align: center; padding: 4rem 1.5rem; color: #475569; }
+        .error-state h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/live" class="logo">&#128225; J5 OBS Live</a>
+        <a href="/live" class="back-link">&larr; Todos los streams</a>
+    </header>
+
+    <div id="loading" style="text-align:center;padding:4rem;color:#475569">Cargando...</div>
+    <div id="content" class="container" style="display:none">
+        <div class="player-wrapper" id="player"></div>
+        <div class="channel-header">
+            <div class="channel-avatar" id="avatar"></div>
+            <div class="channel-info">
+                <h1 id="channel-name">
+                    <span id="channel-name-text"></span>
+                    <span id="live-badge"></span>
+                    <span id="platform-tag"></span>
+                </h1>
+                <div class="channel-meta" id="channel-title"></div>
+                <span class="category-tag" id="category" style="display:none"></span>
+            </div>
+        </div>
+        <div class="j5-badge-section">
+            <a href="/live" class="j5-badge">&#9889; Powered by J5 OBS</a>
+            <a id="platform-link" href="#" target="_blank" class="open-platform-btn" style="display:none">Ver en plataforma &rarr;</a>
+        </div>
+    </div>
+    <div id="error" class="error-state" style="display:none">
+        <h2>Canal no encontrado</h2>
+        <p>Este canal no existe o no est&aacute; disponible p&uacute;blicamente.</p>
+        <a href="/live" style="color:#818cf8;display:inline-block;margin-top:1rem">&larr; Volver al directorio</a>
+    </div>
+
+    <script>
+        const pathParts = window.location.pathname.split('/');
+        const channelSlug = pathParts[pathParts.length - 1] || '';
+
+        function getPlatformEmbedUrl(stream) {
+            const p = (stream.platform || '').toLowerCase();
+            const ch = stream.twitch_channel || stream.public_channel_name || '';
+            if (p.includes('twitch') && ch) return `https://player.twitch.tv/?channel=${ch}&parent=${location.hostname}`;
+            if (p.includes('kick') && ch) return `https://player.kick.com/${ch}`;
+            return null;
+        }
+
+        function getPlatformExternalUrl(stream) {
+            const p = (stream.platform || '').toLowerCase();
+            const ch = stream.twitch_channel || stream.public_channel_name || '';
+            if (p.includes('twitch') && ch) return `https://twitch.tv/${ch}`;
+            if (p.includes('kick') && ch) return `https://kick.com/${ch}`;
+            return null;
+        }
+
+        function getPlatformClass(platform) {
+            const p = (platform || '').toLowerCase();
+            if (p.includes('twitch')) return 'platform-tag tag-twitch';
+            if (p.includes('kick')) return 'platform-tag tag-kick';
+            if (p.includes('youtube')) return 'platform-tag tag-youtube';
+            return 'platform-tag tag-custom';
+        }
+
+        async function load() {
+            try {
+                const res = await fetch(`/api/public/live/${channelSlug}`);
+                if (!res.ok) throw new Error('Not found');
+                const stream = await res.json();
+
+                document.title = `${stream.public_channel_name || stream.name} \u2014 J5 OBS Live`;
+
+                // Player
+                const embedUrl = getPlatformEmbedUrl(stream);
+                const player = document.getElementById('player');
+                if (embedUrl) {
+                    player.innerHTML = `<iframe src="${embedUrl}" allowfullscreen allow="autoplay"></iframe>`;
+                } else {
+                    player.innerHTML = `<div class="no-embed"><span>&#128250;</span><p>Player no disponible para esta plataforma</p></div>`;
+                }
+
+                // Channel info
+                const name = stream.public_channel_name || stream.name || '?';
+                document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+                document.getElementById('channel-name-text').textContent = name;
+
+                const isLive = stream.stream_active;
+                document.getElementById('live-badge').innerHTML = isLive
+                    ? '<span class="live-indicator"><span class="live-dot"></span>EN DIRECTO</span>'
+                    : '<span class="offline-indicator">OFFLINE</span>';
+
+                document.getElementById('platform-tag').innerHTML = `<span class="${getPlatformClass(stream.platform)}">${stream.platform || ''}</span>`;
+                document.getElementById('channel-title').textContent = stream.public_stream_title || '';
+
+                const catEl = document.getElementById('category');
+                if (stream.public_category) {
+                    catEl.textContent = stream.public_category;
+                    catEl.style.display = '';
+                }
+
+                const extUrl = getPlatformExternalUrl(stream);
+                if (extUrl) {
+                    const link = document.getElementById('platform-link');
+                    link.href = extUrl;
+                    link.style.display = '';
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = '';
+            } catch (e) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = '';
+            }
+        }
+
+        load();
+    </script>
+</body>
+</html>

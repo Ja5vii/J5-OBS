@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J5 OBS — En Directo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Full dark, modern style similar to the admin panel */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; }
+        
+        /* Header */
+        .header { background: rgba(15,23,42,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0 1.5rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; font-weight: 800; font-size: 1.1rem; text-decoration: none; color: white; }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .nav-link { color: #94a3b8; text-decoration: none; font-size: 0.875rem; font-weight: 500; padding: 0.375rem 0.75rem; border-radius: 8px; transition: all 0.2s; }
+        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.05); }
+        .nav { display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Hero */
+        .hero { padding: 3rem 1.5rem 2rem; text-align: center; }
+        .hero h1 { font-size: clamp(1.75rem, 5vw, 3rem); font-weight: 800; background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { color: #64748b; margin-top: 0.5rem; font-size: 1rem; }
+        .live-count { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 0.375rem 0.875rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 700; margin-top: 1rem; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        /* Filters */
+        .filters { padding: 1rem 1.5rem; max-width: 1200px; margin: 0 auto; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .filter-btn { padding: 0.375rem 0.875rem; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover, .filter-btn.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5); color: #a5b4fc; }
+        .search-input { margin-left: auto; padding: 0.375rem 0.875rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 9999px; color: white; font-size: 0.8125rem; outline: none; width: 200px; }
+        .search-input::placeholder { color: #475569; }
+        .search-input:focus { border-color: rgba(99,102,241,0.5); }
+        
+        /* Featured */
+        .section { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+        .section-title { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 1rem; }
+        
+        /* Stream grid */
+        .stream-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        @media (max-width: 640px) { .stream-grid { grid-template-columns: 1fr; } }
+        
+        /* Stream card */
+        .stream-card { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; text-decoration: none; color: inherit; display: block; }
+        .stream-card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.3); }
+        .card-thumb { aspect-ratio: 16/9; background: linear-gradient(135deg, #1e293b, #0f172a); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .card-thumb-icon { font-size: 3rem; opacity: 0.15; }
+        .platform-badge { position: absolute; top: 0.5rem; left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; }
+        .platform-twitch { background: rgba(145,71,255,0.9); color: white; }
+        .platform-kick { background: rgba(83,252,26,0.9); color: #0a1a00; }
+        .platform-youtube { background: rgba(255,0,0,0.9); color: white; }
+        .platform-custom { background: rgba(100,116,139,0.9); color: white; }
+        .live-badge { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(239,68,68,0.9); color: white; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.625rem; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 0.25rem; }
+        .card-body { padding: 0.875rem; }
+        .card-name { font-weight: 700; font-size: 0.9375rem; }
+        .card-meta { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .card-category { color: #94a3b8; font-size: 0.8125rem; margin-top: 0.375rem; }
+        .featured-star { color: #f59e0b; font-size: 0.75rem; margin-left: 0.25rem; }
+        
+        /* Empty state */
+        .empty { text-align: center; padding: 4rem 1.5rem; color: #475569; }
+        .empty h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+        
+        /* Footer */
+        .footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; text-align: center; color: #334155; font-size: 0.8125rem; margin-top: 3rem; }
+        .j5-badge { display: inline-flex; align-items: center; gap: 0.375rem; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/live" class="logo">
+            <div class="logo-icon">&#128225;</div>
+            J5 OBS Live
+        </a>
+        <nav class="nav">
+            <a href="/live" class="nav-link active">Directorio</a>
+            <a href="/multiview" class="nav-link">Multiview</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Streams en Directo</h1>
+        <p>Todos los streamers de J5 OBS emitiendo ahora mismo</p>
+        <div class="live-count" id="live-count" style="display:none">
+            <span class="live-dot"></span>
+            <span id="live-count-text">0 en directo</span>
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
+        <button class="filter-btn" onclick="setFilter('Twitch', this)">Twitch</button>
+        <button class="filter-btn" onclick="setFilter('Kick', this)">Kick</button>
+        <button class="filter-btn" onclick="setFilter('YouTube', this)">YouTube</button>
+        <input type="text" class="search-input" placeholder="Buscar canal..." id="search-input" oninput="onSearch(this.value)">
+    </div>
+
+    <div class="section" id="featured-section" style="display:none">
+        <div class="section-title">&#11088; Destacados</div>
+        <div class="stream-grid" id="featured-grid"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" id="live-title">&#128308; En Directo</div>
+        <div class="stream-grid" id="live-grid"></div>
+        <div class="empty" id="empty-state" style="display:none">
+            <h2>No hay streams activos</h2>
+            <p>Vuelve m&aacute;s tarde para ver a los streamers en directo</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <a href="/" class="j5-badge">&#9889; Powered by J5 OBS</a>
+        <p style="margin-top:0.75rem">&copy; 2025 J5 OBS &mdash; Plataforma de streaming IRL</p>
+    </footer>
+
+    <script>
+        let allStreams = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        function getPlatformBadge(platform) {
+            const p = (platform || '').toLowerCase();
+            if (p.includes('twitch')) return '<span class="platform-badge platform-twitch">Twitch</span>';
+            if (p.includes('kick')) return '<span class="platform-badge platform-kick">Kick</span>';
+            if (p.includes('youtube')) return '<span class="platform-badge platform-youtube">YouTube</span>';
+            return '<span class="platform-badge platform-custom">Custom</span>';
+        }
+
+        function getChannelUrl(stream) {
+            const p = (stream.platform || '').toLowerCase();
+            const ch = stream.twitch_channel || stream.public_channel_name || '';
+            if (p.includes('twitch') && ch) return `https://twitch.tv/${ch}`;
+            if (p.includes('kick') && ch) return `https://kick.com/${ch}`;
+            return `/live/${encodeURIComponent((stream.public_channel_name || stream.name || '').toLowerCase())}`;
+        }
+
+        function renderCard(stream) {
+            const channelName = stream.public_channel_name || stream.name || 'Desconocido';
+            const category = stream.public_category || '';
+            const url = getChannelUrl(stream);
+            const featuredStar = stream.featured ? '<span class="featured-star">&#11088;</span>' : '';
+            return `
+                <a href="${url}" class="stream-card" target="_blank">
+                    <div class="card-thumb">
+                        <span class="card-thumb-icon">&#128250;</span>
+                        ${getPlatformBadge(stream.platform)}
+                        <div class="live-badge"><span style="width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 2s infinite"></span>LIVE</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-name">${channelName}${featuredStar}</div>
+                        <div class="card-meta">${stream.platform || 'Stream'}</div>
+                        ${category ? `<div class="card-category">${category}</div>` : ''}
+                    </div>
+                </a>`;
+        }
+
+        function filterAndRender() {
+            let filtered = allStreams.filter(s => {
+                if (currentFilter !== 'all' && (s.platform || '').toLowerCase() !== currentFilter.toLowerCase()) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    const name = (s.public_channel_name || s.name || '').toLowerCase();
+                    const cat = (s.public_category || '').toLowerCase();
+                    if (!name.includes(q) && !cat.includes(q)) return false;
+                }
+                return true;
+            });
+
+            const featured = filtered.filter(s => s.featured);
+            const live = filtered;
+
+            document.getElementById('featured-section').style.display = featured.length ? '' : 'none';
+            document.getElementById('featured-grid').innerHTML = featured.map(renderCard).join('');
+            document.getElementById('live-grid').innerHTML = live.map(renderCard).join('');
+            document.getElementById('empty-state').style.display = live.length ? 'none' : '';
+        }
+
+        function setFilter(platform, btn) {
+            currentFilter = platform;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterAndRender();
+        }
+
+        function onSearch(val) {
+            searchQuery = val;
+            filterAndRender();
+        }
+
+        async function load() {
+            try {
+                const res = await fetch('/api/public/live');
+                const data = await res.json();
+                allStreams = data.streams || [];
+                const liveEl = document.getElementById('live-count');
+                const liveCount = allStreams.filter(s => s.stream_active).length;
+                if (liveCount > 0) {
+                    liveEl.style.display = '';
+                    document.getElementById('live-count-text').textContent = `${liveCount} en directo`;
+                }
+                filterAndRender();
+            } catch (e) {
+                document.getElementById('empty-state').style.display = '';
+                document.getElementById('live-grid').innerHTML = '';
+            }
+        }
+
+        load();
+        setInterval(load, 30000);
+    </script>
+</body>
+</html>
