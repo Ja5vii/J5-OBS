@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>J5 OBS — Diagnóstico Móvil & Universal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: calc(1rem + var(--sat)) calc(1rem + var(--sar)) calc(1rem + var(--sab)) calc(1rem + var(--sal));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .header h1 {
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .badge-ready {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+        .card h2 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.75rem;
+        }
+        .item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .item-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .item-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-top: 0.25rem;
+            word-break: break-all;
+        }
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.875rem;
+        }
+        .status-row:last-child { border-bottom: none; }
+        .tag-ok { color: #34d399; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; }
+        .tag-warn { color: #fbbf24; font-weight: 700; }
+        .tag-err { color: #f87171; font-weight: 700; }
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .btn {
+            min-height: 48px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #cbd5e1; }
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            background: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📡 J5 OBS Diagnostics</h1>
+            <span id="overall_badge" class="badge-ready">PROBANDO...</span>
+        </div>
+
+        <!-- Viewport & Pantalla -->
+        <div class="card">
+            <h2>📱 Viewport & Pantalla</h2>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-label">Viewport (CSS)</div>
+                    <div class="item-val" id="d_viewport">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Pantalla Real</div>
+                    <div class="item-val" id="d_screen">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">DPR (Retina)</div>
+                    <div class="item-val" id="d_dpr">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Orientación</div>
+                    <div class="item-val" id="d_orientation">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema y Navegador -->
+        <div class="card">
+            <h2>🌐 Sistema & Motor</h2>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-label">Dispositivo</div>
+                    <div class="item-val" id="d_device">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Sistema Operativo</div>
+                    <div class="item-val" id="d_os">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Navegador</div>
+                    <div class="item-val" id="d_browser">-</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Touch Capable</div>
+                    <div class="item-val" id="d_touch">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safe Area Insets (iOS/Android) -->
+        <div class="card">
+            <h2>🛡️ Safe Area Insets (Notch / Island)</h2>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-label">Top Inset</div>
+                    <div class="item-val" id="d_sat">0px</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Bottom Inset</div>
+                    <div class="item-val" id="d_sab">0px</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Left Inset</div>
+                    <div class="item-val" id="d_sal">0px</div>
+                </div>
+                <div class="item">
+                    <div class="item-label">Right Inset</div>
+                    <div class="item-val" id="d_sar">0px</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist de Compatibilidad -->
+        <div class="card">
+            <h2>⚡ Verificación de Compatibilidad</h2>
+            <div class="status-row">
+                <span>Conectividad API Central</span>
+                <span id="c_api" class="tag-warn">Comprobando...</span>
+            </div>
+            <div class="status-row">
+                <span>Soporte WebSockets</span>
+                <span id="c_ws" class="tag-warn">Comprobando...</span>
+            </div>
+            <div class="status-row">
+                <span>Almacenamiento Local (Safe Storage)</span>
+                <span id="c_storage" class="tag-warn">Comprobando...</span>
+            </div>
+            <div class="status-row">
+                <span>Unidad 100dvh (Dynamic Viewport)</span>
+                <span id="c_dvh" class="tag-warn">Comprobando...</span>
+            </div>
+            <div class="status-row">
+                <span>Backdrop Filter (WebKit Glass)</span>
+                <span id="c_backdrop" class="tag-warn">Comprobando...</span>
+            </div>
+            <div class="status-row">
+                <span>Desbordamiento Horizontal (Overflow)</span>
+                <span id="c_overflow" class="tag-warn">Comprobando...</span>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="copyReport()">📋 Copiar Reporte</button>
+            <a href="/" class="btn btn-secondary">🚀 Ir al Panel</a>
+        </div>
+    </div>
+
+    <div id="toast">Reporte copiado al portapapeles</div>
+
+    <script>
+        let reportData = {};
+
+        function runDiagnostics() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const sw = screen.width;
+            const sh = screen.height;
+            const dpr = window.devicePixelRatio || 1;
+            const ua = navigator.userAgent;
+
+            document.getElementById('d_viewport').innerText = `${w} × ${h}`;
+            document.getElementById('d_screen').innerText = `${sw} × ${sh}`;
+            document.getElementById('d_dpr').innerText = `${dpr}x`;
+            document.getElementById('d_orientation').innerText = w > h ? 'Landscape' : 'Portrait';
+
+            // Detect OS
+            let os = 'Desconocido';
+            if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+            else if (/Android/i.test(ua)) os = 'Android';
+            else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macOS';
+            else if (/Windows/i.test(ua)) os = 'Windows';
+            else if (/Linux/i.test(ua)) os = 'Linux';
+            document.getElementById('d_os').innerText = os;
+
+            // Detect Device
+            let device = 'Desktop / Laptop';
+            if (/iPhone/i.test(ua)) device = 'iPhone';
+            else if (/iPad/i.test(ua)) device = 'iPad';
+            else if (/Android/i.test(ua)) {
+                device = /Mobile/i.test(ua) ? 'Android Phone' : 'Android Tablet';
+            }
+            document.getElementById('d_device').innerText = device;
+
+            // Detect Browser
+            let browser = 'Desconocido';
+            if (/CriOS|Chrome/i.test(ua) && !/Edge|OPR/i.test(ua)) browser = 'Chrome';
+            else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari (WebKit)';
+            else if (/Firefox|FxiOS/i.test(ua)) browser = 'Firefox';
+            else if (/Edg/i.test(ua)) browser = 'Edge';
+            document.getElementById('d_browser').innerText = browser;
+
+            // Touch
+            const touch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            document.getElementById('d_touch').innerText = touch ? `Sí (${navigator.maxTouchPoints || 1} pts)` : 'No';
+
+            // Safe Area
+            const computedStyle = getComputedStyle(document.documentElement);
+            const sat = computedStyle.getPropertyValue('--sat') || '0px';
+            const sab = computedStyle.getPropertyValue('--sab') || '0px';
+            const sal = computedStyle.getPropertyValue('--sal') || '0px';
+            const sar = computedStyle.getPropertyValue('--sar') || '0px';
+            document.getElementById('d_sat').innerText = sat.trim() || '0px';
+            document.getElementById('d_sab').innerText = sab.trim() || '0px';
+            document.getElementById('d_sal').innerText = sal.trim() || '0px';
+            document.getElementById('d_sar').innerText = sar.trim() || '0px';
+
+            // Feature Tests
+            // 1. Storage
+            try {
+                localStorage.setItem('__test__', '1');
+                localStorage.removeItem('__test__');
+                document.getElementById('c_storage').innerHTML = '<span class="tag-ok">✓ DISPONIBLE</span>';
+            } catch (e) {
+                document.getElementById('c_storage').innerHTML = '<span class="tag-warn">⚠ RESTRINGIDO</span>';
+            }
+
+            // 2. 100dvh
+            const testDvh = CSS.supports('height', '100dvh');
+            document.getElementById('c_dvh').innerHTML = testDvh 
+                ? '<span class="tag-ok">✓ COMPATIBLE (100dvh)</span>' 
+                : '<span class="tag-ok">✓ FALLBACK (100vh)</span>';
+
+            // 3. Backdrop Filter
+            const testBackdrop = CSS.supports('backdrop-filter', 'blur(10px)') || CSS.supports('-webkit-backdrop-filter', 'blur(10px)');
+            document.getElementById('c_backdrop').innerHTML = testBackdrop
+                ? '<span class="tag-ok">✓ NATIVO GLASS</span>'
+                : '<span class="tag-warn">⚠ FALLBACK SOLIDO</span>';
+
+            // 4. Horizontal Overflow
+            const hasOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+            document.getElementById('c_overflow').innerHTML = !hasOverflow
+                ? '<span class="tag-ok">✓ NINGUNO (100% Ok)</span>'
+                : '<span class="tag-err">❌ DETECTADO OVERFLOW</span>';
+
+            // 5. WebSocket
+            const wsSupport = 'WebSocket' in window;
+            document.getElementById('c_ws').innerHTML = wsSupport
+                ? '<span class="tag-ok">✓ DISPONIBLE</span>'
+                : '<span class="tag-err">❌ NO DISPONIBLE</span>';
+
+            // 6. API check
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(d => {
+                    document.getElementById('c_api').innerHTML = '<span class="tag-ok">✓ ONLINE (200 OK)</span>';
+                    document.getElementById('overall_badge').innerText = '100% READY';
+                    document.getElementById('overall_badge').className = 'badge-ready';
+                })
+                .catch(err => {
+                    document.getElementById('c_api').innerHTML = '<span class="tag-err">❌ NO RESPONDE</span>';
+                    document.getElementById('overall_badge').innerText = 'API ERROR';
+                    document.getElementById('overall_badge').className = 'badge-ready';
+                    document.getElementById('overall_badge').style.background = 'rgba(239, 68, 68, 0.2)';
+                    document.getElementById('overall_badge').style.color = '#f87171';
+                });
+
+            reportData = {
+                viewport: `${w}x${h}`,
+                screen: `${sw}x${sh}`,
+                dpr: dpr,
+                os: os,
+                device: device,
+                browser: browser,
+                touch: touch,
+                dvh: testDvh,
+                overflow: !hasOverflow,
+                userAgent: ua
+            };
+        }
+
+        function copyReport() {
+            const text = `=== J5 OBS DIAGNOSTICS REPORT ===\nDevice: ${reportData.device} (${reportData.os})\nBrowser: ${reportData.browser}\nViewport: ${reportData.viewport} (DPR: ${reportData.dpr}x)\nTouch: ${reportData.touch}\nOverflow Free: ${reportData.overflow}\nUA: ${reportData.userAgent}\nTimestamp: ${new Date().toISOString()}`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            const t = document.getElementById('toast');
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 2500);
+        }
+
+        window.addEventListener('resize', runDiagnostics);
+        window.addEventListener('orientationchange', () => setTimeout(runDiagnostics, 200));
+        runDiagnostics();
+    </script>
+</body>
+</html>

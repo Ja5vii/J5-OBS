@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -33,35 +33,127 @@
             document.write('<script src="/panel/sweetalert2.js?v=2.5.5"><\/script>');
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        html, body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 0; width: 100%; min-height: 100%; min-height: -webkit-fill-available; }
-        #app { width: 100%; min-height: 100vh; min-height: -webkit-fill-available; display: flex; flex-direction: column; }
-        .glass { background: #1e293b; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
-        .glass-card { background: #1e293b; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100vw;
+            min-height: 100%;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+        #app {
+            width: 100%;
+            max-width: 100vw;
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: #1e293b;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .glass-card {
+            background: #1e293b;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
         
-        .mobile-btn { transition: transform 0.2s; padding: 12px; border-radius: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border: none; }
-        .mobile-btn:active { transform: scale(0.95); }
-        .mobile-btn-primary { background: #4f46e5; color: white; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39); }
+        .mobile-btn {
+            min-height: 44px;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            touch-action: manipulation;
+        }
+        .mobile-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+        .mobile-btn-primary {
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+        }
         .mobile-btn-primary:hover { background: #4338ca; }
         
         /* Animaciones para las listas de Vue */
-        .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
-        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(20px); }
+        .list-enter-active, .list-leave-active { transition: all 0.3s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(15px); }
         
-        .modal-enter-active, .modal-leave-active { transition: all 0.3s ease; }
-        .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active, .modal-leave-active { transition: all 0.25s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.96) translateY(20px); }
         
         /* Dropzone para Logo */
-        .dropzone { border: 2px dashed rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 32px; text-align: center; transition: all 0.3s ease; background: rgba(99, 102, 241, 0.05); cursor: pointer; }
+        .dropzone {
+            border: 2px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(99, 102, 241, 0.05);
+            cursor: pointer;
+        }
         .dropzone:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
 
-        /* Mobile layout fixes */
-        .main-content { padding-bottom: 7rem; }
-        @media (min-width: 768px) { .main-content { padding-bottom: 2rem; } }
-        .instance-card { overflow: visible !important; }
+        /* Universal Responsive Layout Fixes */
+        .mobile-top-bar {
+            padding-top: max(0.75rem, var(--sat));
+            padding-left: max(1rem, var(--sal));
+            padding-right: max(1rem, var(--sar));
+        }
+        .mobile-bottom-bar {
+            padding-bottom: max(0.75rem, var(--sab));
+            padding-left: max(0.5rem, var(--sal));
+            padding-right: max(0.5rem, var(--sar));
+        }
+        .main-content {
+            padding-bottom: calc(6rem + var(--sab));
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                padding-bottom: 2rem;
+            }
+        }
+        .instance-card { overflow: visible !important; min-width: 0; }
         .btn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-        .btn-sm { font-size: 0.8125rem; padding: 0.625rem 0.5rem; }
+        .btn-sm { font-size: 0.8125rem; min-height: 40px; padding: 0.5rem; }
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .min-w-0 { min-width: 0; }
         .flex-shrink-0 { flex-shrink: 0; }
@@ -74,14 +166,12 @@
         .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
         .border-t { border-top-width: 1px; }
         .border-slate-800\/50 { border-color: rgba(30, 41, 59, 0.5); }
-        .pb-28 { padding-bottom: 7rem; }
-        .pb-8 { padding-bottom: 2rem; }
         .mt-auto { margin-top: auto; }
         .overflow-visible { overflow: visible !important; }
         .pointer-events-none { pointer-events: none; }
     </style>
 </head>
-<body class="antialiased min-h-screen pb-20 md:pb-0">
+<body class="antialiased min-h-screen">
     <div id="app">
         <!-- PANTALLA DE LOGIN -->
         <div v-if="!authenticated" class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style="background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 45%), radial-gradient(circle at 80% 80%, rgba(244, 63, 94, 0.15), transparent 45%);">
@@ -122,7 +212,7 @@
         <!-- PANEL PRINCIPAL -->
         <div v-else class="min-h-screen flex flex-col md:flex-row">
             <!-- HEADER MOVIL -->
-            <div class="md:hidden glass sticky top-0 z-40 border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+            <div class="md:hidden glass sticky top-0 z-40 border-b border-slate-800 px-4 py-3 flex justify-between items-center mobile-top-bar">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center"><app-icon name="video" class="w-4 h-4 text-white"></app-icon></div>
                     <span class="font-bold">J5 Central</span>
@@ -438,7 +528,7 @@
             </div>
 
             <!-- MENU MOVIL BOTTOM (APP STYLE) -->
-            <div class="md:hidden glass fixed bottom-0 left-0 right-0 border-t border-slate-800 flex justify-around p-2 z-40">
+            <div class="md:hidden glass fixed bottom-0 left-0 right-0 border-t border-slate-800 flex justify-around p-2 z-40 mobile-bottom-bar">
                 <button @click="adminTab = 'instances'" :class="['p-3 rounded-xl flex flex-col items-center gap-1 transition-colors', adminTab === 'instances' ? 'text-indigo-400' : 'text-slate-500']">
                     <app-icon name="monitor-play" class="w-5 h-5"></app-icon>
                     <span class="text-[10px] font-medium">Servidores</span>

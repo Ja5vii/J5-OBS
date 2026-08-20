@@ -701,9 +701,11 @@ def create_api_app(manager):
     async def _live_page(r): return web.FileResponse(os.path.join(panel_dir, "live.html"))
     async def _multiview_page(r): return web.FileResponse(os.path.join(panel_dir, "multiview.html"))
     async def _channel_page(r): return web.FileResponse(os.path.join(panel_dir, "channel.html"))
+    async def _diagnostics_page(r): return web.FileResponse(os.path.join(panel_dir, "diagnostics.html"))
     app.router.add_get('/live', _live_page)
     app.router.add_get('/live/{channel}', _channel_page)
     app.router.add_get('/multiview', _multiview_page)
+    app.router.add_get('/diagnostics', _diagnostics_page)
 
     assets_dir = os.path.join(manager.base_dir, "branding_assets")
     os.makedirs(assets_dir, exist_ok=True)
