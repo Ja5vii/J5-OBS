@@ -461,6 +461,7 @@ def create_api_app(manager):
             import base64
             import uuid
             import os
+            import hashlib
             
             data = await request.json()
             filename = data.get("filename", "logo.png")
@@ -475,19 +476,26 @@ def create_api_app(manager):
                 b64_data = image_data
                 
             asset_id = str(uuid.uuid4())
-            safe_filename = f"{asset_id}_{filename}"
+            raw_bytes = base64.b64decode(b64_data)
+            checksum = hashlib.sha256(raw_bytes).hexdigest()
+            ext = os.path.splitext(filename)[1] or ".png"
+            safe_filename = f"logo_{asset_id[:8]}{ext}"
             
-            assets_dir = os.path.join(manager.base_dir, "j5-obs", "branding_assets")
+            assets_dir = os.path.join(manager.base_dir, "branding_assets")
             os.makedirs(assets_dir, exist_ok=True)
             
             file_path = os.path.join(assets_dir, safe_filename)
-            
             with open(file_path, "wb") as f:
-                f.write(base64.b64decode(b64_data))
+                f.write(raw_bytes)
                 
-            await manager.db.save_asset(asset_id, "image", safe_filename, request["user"]["id"])
+            # Also keep active_logo.png updated
+            with open(os.path.join(assets_dir, "active_logo.png"), "wb") as f:
+                f.write(raw_bytes)
+                
+            url = f"/branding_assets/{safe_filename}"
+            await manager.db.save_asset(asset_id, safe_filename, url, checksum)
             
-            return web.json_response(dumps=custom_dumps, data={"ok": True, "asset_id": asset_id, "filename": safe_filename})
+            return web.json_response(dumps=custom_dumps, data={"ok": True, "asset_id": asset_id, "filename": safe_filename, "url": url})
         except Exception as e:
             return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
 
@@ -686,6 +694,10 @@ def create_api_app(manager):
     app.router.add_get('/live', _live_page)
     app.router.add_get('/live/{channel}', _channel_page)
     app.router.add_get('/multiview', _multiview_page)
+
+    assets_dir = os.path.join(manager.base_dir, "branding_assets")
+    os.makedirs(assets_dir, exist_ok=True)
+    app.router.add_static("/branding_assets", assets_dir)
 
     if os.path.exists(panel_dir):
         async def _panel(r): return web.FileResponse(os.path.join(panel_dir, "index.html"))
