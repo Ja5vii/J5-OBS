@@ -9,14 +9,15 @@
     <title>J5 OBS Central</title>
     <script>
         window.onerror = function(msg, url, line, col, err) {
+            console.error('JS Error:', msg, url, line, err);
             var b = document.getElementById('err_banner');
             if (!b) {
                 b = document.createElement('div');
                 b.id = 'err_banner';
-                b.style = 'position:fixed;top:0;left:0;right:0;background:#ef4444;color:white;padding:12px;font-size:12px;z-index:999999;font-family:sans-serif;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.5);';
+                b.style = 'position:fixed;top:0;left:0;right:0;background:#ef4444;color:white;padding:10px 16px;font-size:12px;z-index:999999;font-family:sans-serif;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 10px rgba(0,0,0,0.5);';
                 if (document.body) { document.body.appendChild(b); } else { document.documentElement.appendChild(b); }
             }
-            b.innerText = 'JS Error: ' + msg + ' (línea ' + line + ')';
+            b.innerHTML = '<span style="flex:1;text-align:left;">⚠ ' + (msg || 'Error') + ' (L' + (line || 0) + ')</span><button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;">Cerrar ✕</button>';
         };
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
@@ -909,13 +910,13 @@
                 const isPublishing = ref(false);
                 const logoInput = ref(null);
 
-                const Toast = Swal.mixin({
+                const Toast = (typeof Swal !== 'undefined' && Swal && Swal.mixin) ? Swal.mixin({
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,
                     timerProgressBar: true
-                });
+                }) : { fire: (obj) => console.log('Toast:', obj) };
 
                 const safeStorage = {
                     getItem: (k) => { try { return window.localStorage ? window.localStorage.getItem(k) : null; } catch(e) { return null; } },
@@ -928,9 +929,10 @@
                 const login = async () => {
                     loading.value = true;
                     error.value = '';
+                    const isRestoring = !!token.value;
                     try {
                         let res;
-                        if (token.value) {
+                        if (isRestoring) {
                             res = await fetch('/api/users/me', { headers: headers() });
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.error || 'Sesion expirada');
@@ -947,9 +949,19 @@
                         fetchData();
                         fetchActiveBranding();
                         if(user.value && user.value.role === 'admin') fetchUsers();
+                        if (pollInterval) clearInterval(pollInterval);
                         pollInterval = setInterval(fetchStats, 3000);
                         
-                    } catch (e) { error.value = e.message; token.value = ''; safeStorage.removeItem('j5_token'); } finally { loading.value = false; }
+                    } catch (e) {
+                        if (!isRestoring) {
+                            error.value = e.message;
+                        }
+                        token.value = '';
+                        authenticated.value = false;
+                        safeStorage.removeItem('j5_token');
+                    } finally {
+                        loading.value = false;
+                    }
                 };
 
                 const logout = () => { authenticated.value = false; token.value = ''; safeStorage.removeItem('j5_token'); if (pollInterval) clearInterval(pollInterval); };
