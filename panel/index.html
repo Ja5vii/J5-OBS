@@ -19,17 +19,18 @@
             b.innerText = 'JS Error: ' + msg + ' (línea ' + line + ')';
         };
     </script>
-    <link rel="stylesheet" href="/panel/style.css?v=2.5.4">
-    <script src="/panel/vue.global.js?v=2.5.4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/panel/style.css?v=2.5.5">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
     <script>
         if (typeof Vue === 'undefined') {
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"><\/script>');
+            document.write('<script src="/panel/vue.global.js?v=2.5.5"><\/script>');
         }
     </script>
-    <script src="/panel/sweetalert2.js?v=2.5.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         if (typeof Swal === 'undefined') {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"><\/script>');
+            document.write('<script src="/panel/sweetalert2.js?v=2.5.5"><\/script>');
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
