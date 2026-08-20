@@ -96,7 +96,7 @@ class DisplayManager:
             else:
                 import sys
                 vnc_proc = subprocess.Popen(
-                    [binary, "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared"],
+                    [binary, "-display", display_str, "-nopw", "-listen", "127.0.0.1", "-rfbport", vnc_port, "-xkb", "-forever", "-shared", "-noxdamage", "-ncache", "10", "-wait", "10", "-defer", "10", "-cursor", "arrow"],
                     stdout=sys.stderr,
                     stderr=sys.stderr,
                 )

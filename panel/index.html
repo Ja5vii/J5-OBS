@@ -500,6 +500,7 @@
                         <input v-model="wizardForm.rtmp_url" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="URL del Servidor (RTMP)">
                         <input v-model="wizardForm.rtmp_key" type="password" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Clave de Transmision">
                         <input v-model="wizardForm.twitch_channel" type="text" class="w-full px-4 py-3 bg-slate-900/50 rounded-xl text-white outline-none border border-slate-700 focus:border-indigo-500" placeholder="Canal de Twitch para el Bot (ej. ja5vii)">
+                        <p class="text-[11px] text-indigo-300/80 bg-indigo-500/10 p-2 rounded-lg border border-indigo-500/20">💡 Recuerda escribir <code>/mod NOMBRE_BOT</code> en tu chat de Twitch para que el bot pueda enviar alertas y cambiar escenas.</p>
                         <label class="flex items-center gap-3 cursor-pointer p-2">
                             <input type="checkbox" v-model="wizardForm.auto_stop" class="w-5 h-5 rounded border-slate-700 bg-slate-900/50 text-indigo-500 focus:ring-indigo-500">
                             <span class="text-sm text-slate-300">Auto-apagar al desconectar Moblin</span>
