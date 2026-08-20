@@ -52,6 +52,13 @@ CREATE TABLE IF NOT EXISTS instances (
     rtmp_key VARCHAR(255),
     connection_id VARCHAR(255),
     twitch_channel VARCHAR(255),
+    public_enabled BOOLEAN DEFAULT false,
+    public_channel_name VARCHAR(255),
+    public_category VARCHAR(255),
+    public_stream_title VARCHAR(255),
+    featured BOOLEAN DEFAULT false,
+    stream_active BOOLEAN DEFAULT false,
+    stream_mode VARCHAR(20) DEFAULT 'relay',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -153,6 +160,20 @@ class Database:
                 try: await conn.execute("ALTER TABLE instances ADD COLUMN auto_stop BOOLEAN DEFAULT true;")
                 except Exception: pass
                 try: await conn.execute("ALTER TABLE instances ADD COLUMN twitch_channel VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN public_enabled BOOLEAN DEFAULT false;")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN public_channel_name VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN public_category VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN public_stream_title VARCHAR(255);")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN featured BOOLEAN DEFAULT false;")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN stream_active BOOLEAN DEFAULT false;")
+                except Exception: pass
+                try: await conn.execute("ALTER TABLE instances ADD COLUMN stream_mode VARCHAR(20) DEFAULT 'relay';")
                 except Exception: pass
                 await self._seed_platforms(conn)
                 await self._seed_roles_and_admin(conn)
@@ -368,8 +389,51 @@ class Database:
         async with self.pool.acquire() as conn:
             await conn.execute("DELETE FROM instances WHERE instance_id = $1", instance_id)
 
+    # --- Public Stream Hub ---
+    async def get_public_live_streams(self, platform=None, category=None, search=None):
+        async with self.pool.acquire() as conn:
+            q = """SELECT i.*, u.username as owner_username
+                   FROM instances i
+                   LEFT JOIN instance_owners io ON i.instance_id = io.instance_id
+                   LEFT JOIN users u ON io.user_id = u.id
+                   WHERE i.public_enabled = true AND i.stream_active = true"""
+            params = []
+            if platform:
+                params.append(platform)
+                q += f" AND i.platform = ${len(params)}"
+            if category:
+                params.append(f'%{category}%')
+                q += f" AND i.public_category ILIKE ${len(params)}"
+            if search:
+                params.append(f'%{search}%')
+                q += f" AND (i.public_channel_name ILIKE ${len(params)} OR i.name ILIKE ${len(params)})"
+            q += " ORDER BY i.featured DESC, i.updated_at DESC"
+            rows = await conn.fetch(q, *params)
+            return [dict(r) for r in rows]
 
-    # --- Global Branding ---
+    async def get_public_channel(self, channel_name):
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT * FROM instances WHERE LOWER(public_channel_name) = LOWER($1) AND public_enabled = true",
+                channel_name
+            )
+            return dict(row) if row else None
+
+    async def update_instance_public(self, instance_id, **fields):
+        allowed = {'public_enabled', 'public_channel_name', 'public_category', 'public_stream_title', 'featured', 'stream_mode', 'stream_active'}
+        updates = {k: v for k, v in fields.items() if k in allowed}
+        if not updates:
+            return
+        updates['updated_at'] = datetime.now(timezone.utc)
+        async with self.pool.acquire() as conn:
+            set_clause = ', '.join(f"{k} = ${i+2}" for i, k in enumerate(updates.keys()))
+            values = list(updates.values())
+            await conn.execute(
+                f"UPDATE instances SET {set_clause} WHERE instance_id = $1",
+                instance_id, *values
+            )
+
+
     async def get_active_branding(self):
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT * FROM branding_versions WHERE is_active = true ORDER BY published_at DESC LIMIT 1")

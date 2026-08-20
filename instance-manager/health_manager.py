@@ -34,6 +34,18 @@ def _fetch_obs_stats(port, password):
         return {"obs_error": str(e)}
 
 
+def calculate_health_score(cpu, fps, dropped_pct):
+    """Return a qualitative health label based on CPU, FPS, and dropped frame percentage."""
+    if cpu < 70 and fps >= 29.5 and dropped_pct < 0.5:
+        return 'EXCELLENT'
+    elif cpu < 85 and fps >= 28 and dropped_pct < 2:
+        return 'GOOD'
+    elif cpu < 95 and fps >= 24 and dropped_pct < 10:
+        return 'WARNING'
+    else:
+        return 'CRITICAL'
+
+
 class HealthManager:
     __slots__ = ("manager", "config", "logger", "_task", "_stop")
 
@@ -107,4 +119,14 @@ class HealthManager:
                     
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
+
+        # Calculate health score from available metrics
+        cpu = s.get("cpu_percent", 0) or 0
+        fps = s.get("obs_fps", 0) or 0
+        total_frames = s.get("obs_output_total", 0) or 0
+        skipped_frames = s.get("obs_output_skipped", 0) or 0
+        dropped_pct = (skipped_frames / total_frames * 100) if total_frames > 0 else 0.0
+        s["health_score"] = calculate_health_score(cpu, fps, dropped_pct)
+
         return s
+

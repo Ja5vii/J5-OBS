@@ -128,6 +128,28 @@ class ProcessManager:
                 "AlertsEnabled=false\n"
             )
         self._write_obs_config(instance_id, profile_dir, scene_dir, inst)
+
+        # --- Relay Mode: use FFmpeg copy instead of OBS ---
+        stream_mode = inst.get('stream_mode', 'relay')
+        rtmp_url = inst.get('rtmp_url')
+        rtmp_key = inst.get('rtmp_key')
+
+        if stream_mode == 'relay' and rtmp_url and rtmp_key:
+            # Relay mode: FFmpeg copy stream, no OBS or virtual display needed
+            self._ensure_dirs(instance_id)
+            await asyncio.sleep(1.5)  # Wait for publisher to establish RTMP
+            try:
+                proc = await self._start_relay(instance_id, inst, log_dir)
+                self._processes[instance_id] = {'process': proc, 'log_file': None}
+                await self.manager.db.update_instance(
+                    instance_id, status='STREAMING', pid=proc.pid
+                )
+                self.logger.info(f"{instance_id} started in RELAY mode (PID: {proc.pid})")
+                return
+            except Exception as e:
+                self.logger.error(f"{instance_id} relay failed: {e}, falling back to OBS")
+                # Fall through to full OBS launch below
+
         self.manager.display_manager.start_xvfb(instance_id)
         display_env = self.manager.display_manager.get_display_env(instance_id)
         pulse_socket = None
@@ -181,6 +203,32 @@ class ProcessManager:
         await self.manager.db.update_instance(instance_id, pid=proc.pid, status="ONLINE")
         self.logger.info(f"{instance_id} started (PID: {proc.pid})")
         asyncio.create_task(self._force_start_stream(instance_id, inst.get("websocket_port"), inst.get("ws_password", "")))
+
+    async def _start_relay(self, instance_id, inst_data, log_dir):
+        """Start FFmpeg relay mode - copies stream without re-encoding."""
+        connection_id = inst_data.get('connection_id')
+        rtmp_url = inst_data.get('rtmp_url', '').rstrip('/')
+        rtmp_key = inst_data.get('rtmp_key', '')
+        if not all([connection_id, rtmp_url, rtmp_key]):
+            raise ValueError('Relay mode requires connection_id, rtmp_url and rtmp_key')
+
+        ingest = f"rtmp://127.0.0.1:1935/live/{connection_id}"
+        destination = f"{rtmp_url}/{rtmp_key}"
+
+        cmd = [
+            'ffmpeg', '-hide_banner', '-loglevel', 'warning',
+            '-re', '-i', ingest,
+            '-c', 'copy',
+            '-f', 'flv',
+            destination
+        ]
+
+        log_fh = open(os.path.join(log_dir, 'relay.log'), 'a')
+        proc = subprocess.Popen(cmd, stdout=log_fh, stderr=log_fh,
+                                preexec_fn=os.setsid if self._is_unix else None)
+        return proc
+
+
 
     async def _force_start_stream(self, instance_id, ws_port, ws_password):
         import asyncio
@@ -248,7 +296,8 @@ class ProcessManager:
                             proc.kill()
                     else:
                         proc.kill()
-            proc_info["log_file"].close()
+            if proc_info.get("log_file") is not None:
+                proc_info["log_file"].close()
         self.manager.display_manager.stop_xvfb(instance_id)
         if self._is_unix:
             self._stop_pulseaudio(instance_id)

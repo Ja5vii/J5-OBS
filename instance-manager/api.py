@@ -148,6 +148,7 @@ def create_api_app(manager):
             import asyncio
             asyncio.create_task(manager.start_instance(inst_id))
             asyncio.create_task(manager.twitch_bot.notify_instance(inst_id, "?? [J5-OBS] Moblin stream connected. Starting OBS..."))
+        await manager.db.update_instance_public(inst_id, stream_active=True)
             
         return web.Response(status=200)
 
@@ -171,6 +172,7 @@ def create_api_app(manager):
             import asyncio
             asyncio.create_task(manager.stop_instance(inst_id))
             asyncio.create_task(manager.twitch_bot.notify_instance(inst_id, "? [J5-OBS] Moblin disconnected. Stopping OBS..."))
+        await manager.db.update_instance_public(inst_id, stream_active=False)
             
         return web.Response(status=200)
 
@@ -518,6 +520,55 @@ def create_api_app(manager):
             return web.json_response(dumps=custom_dumps, data={"versions": versions})
         except Exception as e:
             return web.json_response(dumps=custom_dumps, data={"error": str(e)}, status=500)
+
+    # --- Public Stream Hub API ---
+    async def get_public_live(request):
+        platform = request.query.get('platform')
+        category = request.query.get('category')
+        search = request.query.get('search')
+        streams = await manager.db.get_public_live_streams(platform=platform, category=category, search=search)
+        safe_fields = ['instance_id', 'name', 'public_channel_name', 'public_category', 'public_stream_title',
+                       'platform', 'featured', 'stream_active', 'status', 'updated_at', 'twitch_channel']
+        safe_streams = [{k: s.get(k) for k in safe_fields} for s in streams]
+        return web.json_response(dumps=custom_dumps, data={'streams': safe_streams})
+
+    async def get_public_channel(request):
+        channel = request.match_info.get('channel', '')
+        data = await manager.db.get_public_channel(channel)
+        if not data:
+            return web.json_response({'error': 'Channel not found'}, status=404)
+        safe_fields = ['instance_id', 'name', 'public_channel_name', 'public_category', 'public_stream_title',
+                       'platform', 'featured', 'stream_active', 'status', 'updated_at', 'twitch_channel', 'rtmp_url']
+        return web.json_response(dumps=custom_dumps, data={k: data.get(k) for k in safe_fields})
+
+    async def get_public_featured(request):
+        async with manager.db.pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT instance_id, name, public_channel_name, public_category, public_stream_title, platform, stream_active, status, twitch_channel FROM instances WHERE featured = true AND public_enabled = true ORDER BY stream_active DESC"
+            )
+        return web.json_response(dumps=custom_dumps, data={'featured': [dict(r) for r in rows]})
+
+    @require_auth(manager)
+    async def patch_instance_public(request):
+        instance_id = request.match_info['id']
+        inst = await manager.db.get_instance(instance_id)
+        if not inst:
+            return web.json_response({'error': 'Not found'}, status=404)
+        body = await request.json()
+        allowed = {'public_enabled', 'public_channel_name', 'public_category', 'public_stream_title', 'stream_mode'}
+        updates = {k: v for k, v in body.items() if k in allowed}
+        await manager.db.update_instance_public(instance_id, **updates)
+        return web.json_response({'ok': True})
+
+    @require_auth(manager)
+    @require_admin
+    async def patch_instance_feature(request):
+        instance_id = request.match_info['id']
+        body = await request.json()
+        featured = bool(body.get('featured', False))
+        await manager.db.update_instance_public(instance_id, featured=featured)
+        return web.json_response({'ok': True})
+
     app.router.add_post("/api/auth/login", login)
     app.router.add_get("/api/status", manager_status)
     app.router.add_post("/api/internal/on_publish", internal_on_publish)
@@ -620,7 +671,22 @@ def create_api_app(manager):
     app.router.add_get("/api/admin/branding/versions", get_all_branding_versions)
     app.router.add_get("/api/instances/{id}/vnc", vnc_proxy)
 
+    # Public stream hub routes
+    app.router.add_get('/api/public/live', get_public_live)
+    app.router.add_get('/api/public/live/{channel}', get_public_channel)
+    app.router.add_get('/api/public/featured', get_public_featured)
+    app.router.add_patch('/api/instances/{id}/public', patch_instance_public)
+    app.router.add_patch('/api/instances/{id}/feature', patch_instance_feature)
+
     panel_dir = os.path.join(manager.base_dir, "panel")
+    # Public HTML page routes (served before static, always available if panel dir exists)
+    async def _live_page(r): return web.FileResponse(os.path.join(panel_dir, "live.html"))
+    async def _multiview_page(r): return web.FileResponse(os.path.join(panel_dir, "multiview.html"))
+    async def _channel_page(r): return web.FileResponse(os.path.join(panel_dir, "channel.html"))
+    app.router.add_get('/live', _live_page)
+    app.router.add_get('/live/{channel}', _channel_page)
+    app.router.add_get('/multiview', _multiview_page)
+
     if os.path.exists(panel_dir):
         async def _panel(r): return web.FileResponse(os.path.join(panel_dir, "index.html"))
         app.router.add_get("/", _panel)
@@ -628,4 +694,6 @@ def create_api_app(manager):
         app.router.add_static("/panel", panel_dir)
 
     return app
+
+
 
