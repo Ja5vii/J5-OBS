@@ -700,7 +700,13 @@ def create_api_app(manager):
     app.router.add_static("/branding_assets", assets_dir)
 
     if os.path.exists(panel_dir):
-        async def _panel(r): return web.FileResponse(os.path.join(panel_dir, "index.html"))
+        async def _panel(r):
+            resp = web.FileResponse(os.path.join(panel_dir, "index.html"))
+            resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+            return resp
+            
         app.router.add_get("/", _panel)
         app.router.add_get("/panel", _panel)
         app.router.add_static("/panel", panel_dir)
